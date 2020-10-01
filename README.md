@@ -1,2 +1,3 @@
-# shadan
-shadan.pcn.club
+# 一般社団法人PCN webサイト
+https://shadan.pcn.club/
+
