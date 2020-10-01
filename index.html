@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="keywords" content="PCN,プログラミングクラブネットワーク,こども,プログラミング">
+<meta name="description" content="一般社団法人PCNはPCN活動をするみなさんを応援します">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta property="og:title" content="一般社団法人プログラミングクラブネットワーク">
+<meta property="og:type" content="website">
+<meta property="og:url" content="http://shadan.pcn.club/">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:image" content="http://shadan.pcn.club/image/fb.jpg">
+<meta property="og:site_name" content="一般社団法人プログラミングクラブネットワーク">
+<meta property="og:description" content="一般社団法人PCNはPCN活動をするみなさんを応援します">
+<link rel="icon" href="http://shadan.pcn.club/image/favicon.ico">
+<link rel="stylesheet" type="text/css" href="./style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+JP:400,700&display=swap&subset=japanese">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:400,700&display=swap&subset=japanese">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="./master.js"></script>
+<script>
+  $(function(){
+    $('#hamburger').on('click', function () {
+      $('#hamburger, .sp_nav').toggleClass('toggle');
+    });
+    $('.sp_list, .sp_nav').on('click', function () {
+      $("#hamburger, .sp_nav").removeClass("toggle");
+    });
+  });
+</script>
+<title>一般社団法人プログラミングクラブネットワーク</title>
+</head>
+
+<body>
+  <a id="top"></a>
+  <header>
+    <h1><img src="./img/logo.png" alt="一般社団法人プログラミングクラブネットワーク"></h1>
+    <nav class="pc_nav">
+      <ul>
+        <li><a href="http://shadan.pcn.club/#project">事業内容</a></li>
+        <li><a href="http://shadan.pcn.club/#member">理 事</a></li>
+        <li><a href="http://shadan.pcn.club/#support">会員募集</a></li>
+        <li><a href="http://shadan.pcn.club/#contact">お問い合わせ</a></li>
+      </ul>
+    </nav>
+    <nav class="sp_nav">
+      <ul>
+        <li><a class="sp_list" href="http://shadan.pcn.club/#project">事業内容</a></li>
+        <li><a class="sp_list" href="http://shadan.pcn.club/#member">理 事</a></li>
+        <li><a class="sp_list" href="http://shadan.pcn.club/#support">会員募集</a></li>
+        <li><a class="sp_list" href="http://shadan.pcn.club/#contact">お問い合わせ</a></li>
+      </ul>
+    </nav>
+    <div id="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </header><!-- /#header -->
+
+  <div id="mainvisual">
+    <div>
+      <img src="./img/mainvisual.png" alt="すべてのこどもたちにプログラミングを。">
+    </div>
+  </div><!-- /#mainvisual -->
+
+  <div id="project" class="_block">
+    <div id="headline"><h2>事業内容</h2></div>
+    <ul>
+      <li>
+        <dl>
+          <dt><img src="./img/project01.png"></dt>
+          <dd>
+            <h3>PCN活動の啓蒙</h3>
+            <p>プログラミングクラブの運営に興味のある方に、PCN活動の啓蒙をします</p>
+          </dd>
+        </dl>
+      </li>
+      <li>
+        <dl>
+          <dt><img src="./img/project02.png"></dt>
+          <dd>
+            <h3>各地のPCNのサポート</h3>
+            <p>スタートアップや継続した活動を支援します</p>
+          </dd>
+        </dl>
+      </li>
+      <li>
+        <dl>
+          <dt><img src="./img/project03.png"></dt>
+          <dd>
+            <h3>PCNサミットの開催</h3>
+            <p>活動を報告、共有する「PCNサミット」を開催します</p>
+          </dd>
+        </dl>
+      </li>
+    </ul>
+  </div><!-- /#project -->
+
+  <div id="member" class="_block">
+    <div id="headline"><h2>理 事</h2></div>
+    <ul>
+      <li>
+        <dl>
+          <dt><img src="./img/member01.png"></dt>
+          <dd>松田 優一</dd>
+          <dd class="post">代表理事</dd>
+        </dl>
+      </li>
+      <li>
+        <dl>
+          <dt><img src="./img/member02.png"></dt>
+          <dd>荒木 義彦</dd>
+          <dd class="post">理事</dd>
+        </dl>
+      </li>
+      <li>
+        <dl>
+          <dt><img src="./img/member03.png"></dt>
+          <dd>岡村 康子</dd>
+          <dd class="post">理事</dd>
+        </dl>
+      </li>
+      <li>
+        <dl>
+          <dt><img src="./img/member04.png"></dt>
+          <dd>久保田 旭</dd>
+          <dd class="post">理事</dd>
+        </dl>
+      </li>
+    </ul>
+  </div><!-- /#member -->
+
+  <div id="support" class="_block">
+    <div id="headline"><h2>当団体の活動に賛同いただける会員を募集しております</h2></div>
+    <div id="content">
+      <h3>会費</h3>
+      <table>
+        <tbody><tr><th>種類</th><th>入会金</th><th>年会費</th></tr>
+        <tr><td>正会員（個人）</td><td>1,000円</td><td>12,000円</td></tr>
+        <tr><td>賛助会員（個人）</td><td>-</td><td>1口　5,000円</td></tr>
+        <tr><td>賛助会員（企業団体）</td><td>-</td><td>1口　100,000円</td></tr>
+        <tr><td>アライアンス会員</td><td>-</td>
+          <td>
+            条件を満たすことにより免除<br>
+            <span>※当法人が注力するプログラミング教育、STEM/STEAM分野での相互協定ならびに相互会員・広報活動・共同イベント等による相互支援が可能である個人・団体に限ります</span>
+          </td>
+        </tr>
+      </tbody></table>
+    </div>
+    <div id="content">
+      <h3>入会するには</h3>
+      <p>入会をご希望の方は、下記お問い合わせ先よりご連絡ください。</p>
+    </div>
+  </div><!-- /#support -->
+
+  <div id="contact" class="_block">
+    <div id="headline"><h2>お問い合わせ</h2></div>
+    <div>
+      <p>shadan@pcn.club</p>
+    </div>
+  </div><!-- /#contact -->
+
+  <footer>
+    <p>©2020 一般社団法人プログラミングクラブネットワーク</p>
+  </footer>
+
+</body></html>
