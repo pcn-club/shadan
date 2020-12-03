@@ -27,8 +27,8 @@ a{
 a:hover{color: #e7b614;}
 a img{transition: all 300ms 0s ease;}
 a:hover img{filter: alpha(opacity=60);-moz-opacity: 0.6;opacity: 0.6;}
-img{border: none;vertical-align: top;width: 100%;}
-#project, #support{background-color: #e8f0f2;}
+/* img{border: none;vertical-align: top;width: 100%;} */
+#project, #support, #supporters{background-color: #e8f0f2;}
 
 
 /* -------------------------------------------------------------- */
@@ -336,7 +336,7 @@ header ul{
 
 
 /* -------------------------------------------------------------- */
-/* support */
+/* contact */
 /* -------------------------------------------------------------- */
 #contact div{
   margin: 0 auto;
@@ -353,6 +353,22 @@ header ul{
   background-color: #e8f0f2;
   font-family: 'Noto Sans JP',   sans-serif;
   font-weight: bold;;
+}
+
+
+
+/* -------------------------------------------------------------- */
+/* supporters */
+/* -------------------------------------------------------------- */
+#supporters{
+  text-align: center;
+}
+
+#supporters ul{
+}
+
+#supporters ul li{
+  font-size: 70%;
 }
 
 
