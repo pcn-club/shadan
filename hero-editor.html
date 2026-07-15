@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ヒーローアイコン配置エディタ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Noto+Sans+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;500&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      color: #333;
+      background: #f5f5f5;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 8px; }
+    .intro { margin: 0 0 16px; line-height: 1.6; color: #555; max-width: 980px; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 20px;
+      align-items: center;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid #ddd;
+      max-width: 980px;
+    }
+    .toolbar label { display: flex; align-items: center; gap: 8px; }
+    .toolbar--text {
+      margin-top: -8px;
+    }
+    .toolbar--text h2 {
+      width: 100%;
+      margin: 0;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #555;
+    }
+    .toolbar button {
+      padding: 8px 14px;
+      border: 1px solid #999;
+      background: #fff;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .toolbar button.primary { background: #333; color: #fff; border-color: #333; }
+    .toolbar button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .workspace {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .canvas-wrap {
+      background: #e6e6e6;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      overflow: auto;
+      max-width: 100%;
+      padding: 1em 0;
+    }
+    .canvas {
+      position: relative;
+      width: 980px;
+      height: 460px;
+      margin: 0 auto;
+      background: #fff;
+      user-select: none;
+      touch-action: none;
+    }
+    .canvas__icons {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    .hero-text {
+      position: absolute;
+      top: var(--hero-text-top, 26%);
+      left: var(--hero-text-left, 5%);
+      bottom: var(--hero-text-bottom, 20%);
+      width: var(--hero-text-width, 100%);
+      z-index: 3;
+      box-sizing: border-box;
+      pointer-events: none;
+      color: #333;
+      font-family: var(--hero-text-font-family, 'Noto Serif JP', serif);
+      opacity: var(--hero-text-opacity, 1);
+    }
+    .hero-title {
+      font-weight: var(--hero-title-font-weight, 700);
+    }
+    .hero-body {
+      font-weight: var(--hero-body-font-weight, 400);
+    }
+    .hero-title {
+      margin-bottom: var(--hero-title-margin-bottom, 1.1em);
+      font-size: var(--hero-title-size, 1.85em);
+      font-weight: 700;
+      line-height: var(--hero-title-line-height, 1.55);
+      letter-spacing: 0.02em;
+    }
+    .hero-body {
+      font-size: var(--hero-body-size, 0.95em);
+      line-height: var(--hero-body-line-height, 2);
+      letter-spacing: 0.02em;
+    }
+    #hero-years {
+      font-weight: 700;
+    }
+    .hero-icon {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 54px;
+      text-align: center;
+      cursor: grab;
+      z-index: 2;
+      --hero-icon-size: 42px;
+    }
+    .hero-icon.is-dragging {
+      cursor: grabbing;
+      z-index: 10;
+      outline: 2px solid #e7b614;
+      outline-offset: 2px;
+    }
+    .hero-icon.is-selected {
+      outline: 2px dashed #0066cc;
+      outline-offset: 2px;
+    }
+    .hero-icon img {
+      display: block;
+      width: var(--hero-icon-size, 42px);
+      height: auto;
+      pointer-events: none;
+    }
+    .sidebar {
+      width: 280px;
+      max-height: 520px;
+      overflow: auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 12px;
+    }
+    .sidebar h2 { font-size: 1rem; margin: 0 0 8px; }
+    .sidebar ul { list-style: none; margin: 0; padding: 0; }
+    .sidebar li {
+      padding: 6px 8px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    .sidebar li:hover { background: #f9f9f9; }
+    .sidebar li.is-selected { background: #eef6ff; }
+    .output {
+      margin-top: 16px;
+      max-width: 980px;
+    }
+    .output textarea {
+      width: 100%;
+      height: 160px;
+      font-family: monospace;
+      font-size: 12px;
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    .output p { margin: 8px 0 4px; color: #555; }
+    .output-actions {
+      display: flex;
+      gap: 8px;
+      margin: 8px 0 16px;
+    }
+    .output textarea.text-json-input {
+      height: 100px;
+    }
+    .status {
+      margin: 0 0 12px;
+      max-width: 980px;
+      color: #555;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>ヒーローアイコン配置エディタ</h1>
+  <p class="intro">
+    アイコンをドラッグして位置を合わせます。
+    座標はキャンバス全体に対する % です。アイコンをクリックして選択し、サイズを個別に調整できます。
+    完成したら JSON をエクスポートし、
+    <code>hero-positions.json</code> を保存して <code>python3 scripts/sync-hero-positions.py</code> を実行してください。
+  </p>
+  <p class="status" id="editor-status">読み込み中…</p>
+
+  <div class="toolbar">
+    <label>
+      アイコン層の透明度
+      <input type="range" id="icon-opacity" min="10" max="100" value="25">
+      <span id="icon-opacity-val">25%</span>
+    </label>
+    <label>
+      デフォルトサイズ
+      <input type="range" id="icon-size-default" min="24" max="120" value="42" step="1">
+      <span id="icon-size-default-val">42px</span>
+    </label>
+    <label>
+      選択中のアイコン
+      <input type="range" id="icon-size-selected" min="24" max="120" value="42" step="1" disabled>
+      <span id="icon-size-selected-val">—</span>
+    </label>
+    <button type="button" id="btn-reset-icon-size" disabled>選択中をデフォルトに戻す</button>
+    <button type="button" id="btn-export" class="primary">JSON をエクスポート</button>
+    <label>
+      JSON を読み込み
+      <input type="file" id="file-import" accept="application/json,.json">
+    </label>
+  </div>
+
+  <div class="toolbar toolbar--text">
+    <h2>文字位置</h2>
+    <label>
+      上
+      <input type="range" id="text-padding-top" min="0" max="50" value="26" step="1">
+      <span id="text-padding-top-val">26%</span>
+    </label>
+    <label>
+      下
+      <input type="range" id="text-padding-bottom" min="0" max="50" value="20" step="1">
+      <span id="text-padding-bottom-val">20%</span>
+    </label>
+    <label>
+      左
+      <input type="range" id="text-padding-left" min="0" max="30" value="5" step="1">
+      <span id="text-padding-left-val">5%</span>
+    </label>
+    <label>
+      フォント
+      <select id="text-font-family">
+        <option value="Hiragino Mincho">ヒラギノ明朝（Mac標準・推奨）</option>
+        <option value="Hiragino Sans">ヒラギノ角ゴ（Mac標準）</option>
+        <option value="Noto Serif JP">Noto Serif JP（要ネット）</option>
+        <option value="Noto Serif JP Light">Noto Serif JP Light（要ネット）</option>
+        <option value="Shippori Mincho">Shippori Mincho（要ネット）</option>
+        <option value="Noto Sans JP">Noto Sans JP（要ネット）</option>
+        <option value="Noto Sans JP Light">Noto Sans JP Light（要ネット）</option>
+        <option value="serif">システム明朝</option>
+        <option value="sans-serif">システムゴシック</option>
+      </select>
+    </label>
+    <label>
+      見出しサイズ
+      <input type="range" id="text-title-size" min="100" max="400" value="185" step="5">
+      <span id="text-title-size-val">1.85em</span>
+    </label>
+    <label>
+      見出し行高
+      <input type="range" id="text-title-line-height" min="100" max="350" value="155" step="5">
+      <span id="text-title-line-height-val">1.55</span>
+    </label>
+    <label>
+      本文サイズ
+      <input type="range" id="text-body-size" min="70" max="250" value="95" step="5">
+      <span id="text-body-size-val">0.95em</span>
+    </label>
+    <label>
+      本文行高
+      <input type="range" id="text-body-line-height" min="120" max="400" value="200" step="5">
+      <span id="text-body-line-height-val">2</span>
+    </label>
+    <button type="button" id="btn-copy-text">文字設定をコピー</button>
+  </div>
+
+  <div class="workspace">
+    <div class="canvas-wrap">
+      <div class="canvas" id="canvas">
+        <div class="canvas__icons" id="icons-layer"></div>
+        <div class="hero-text" id="hero-text">
+          <h2 class="hero-title">一般社団法人PCNは<br>PCN活動をするみなさんを応援します。</h2>
+          <p class="hero-body">
+            任意団体PCNの活動を始めて<span id="hero-years"></span>年が経過しました。<br>
+            おかげさまで世界各地で活動拠点が増えるにあたり<br>
+            ノウハウ共有やサポートの目的のために団体を創立しました。
+          </p>
+        </div>
+      </div>
+    </div>
+    <aside class="sidebar">
+      <h2>アイコン一覧</h2>
+      <ul id="icon-list"></ul>
+    </aside>
+  </div>
+
+  <div class="output">
+    <p>文字設定（コピー / 貼り付け用）</p>
+    <textarea id="text-json-output" readonly></textarea>
+    <div class="output-actions">
+      <button type="button" id="btn-copy-text-bottom">クリップボードにコピー</button>
+      <button type="button" id="btn-apply-text">貼り付けを反映</button>
+    </div>
+    <textarea id="text-json-input" class="text-json-input" placeholder='{"textPadding":{"top":26,"left":5,"bottom":20,"width":100},"textStyle":{...}}'></textarea>
+  </div>
+
+  <div class="output">
+    <p>全体エクスポート（プレビュー）</p>
+    <textarea id="json-output" readonly></textarea>
+  </div>
+
+  <script src="./hero-fonts.js"></script>
+  <script src="./hero-editor.js"></script>
+</body>
+</html>
