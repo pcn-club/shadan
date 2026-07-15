@@ -1,0 +1,465 @@
+/**
+ * ヒーロー背景の PCN アイコン配置
+ * 座標: キャンバス 980×460 全体に対する %（hero-editor.html で調整）
+ * アイコン画像: img/membericon/
+ */
+const HERO_CONFIG = {
+  activityStartYear: 2015,
+  iconBaseUrl: './img/membericon/',
+  mapOpacity: 0.25,
+  iconSize: 49,
+  textPadding: {"top": 14, "left": 5, "bottom": 20, "width": 100},
+  textStyle: {"fontFamily": "Shippori Mincho", "titleSize": 3.25, "titleLineHeight": 1.4, "titleMarginBottom": 1.1, "bodySize": 1.5, "bodyLineHeight": 1.6, "opacity": 1},
+};
+
+const HERO_POSITIONS = [
+  {
+    "id": 82,
+    "name": "筑波大",
+    "top": 5.8,
+    "left": 63.4
+  },
+  {
+    "id": 72,
+    "name": "掛川",
+    "top": 5.9,
+    "left": 70.1
+  },
+  {
+    "id": 71,
+    "name": "日新",
+    "top": 6,
+    "left": 74.6
+  },
+  {
+    "id": 68,
+    "name": "高田馬場",
+    "top": 6.6,
+    "left": 66.8
+  },
+  {
+    "id": 79,
+    "name": "ふるため",
+    "top": 6.7,
+    "left": 78.8
+  },
+  {
+    "id": 10,
+    "name": "札幌",
+    "top": 6.9,
+    "left": 92.2,
+    "size": 50
+  },
+  {
+    "id": 70,
+    "name": "魚津",
+    "top": 7,
+    "left": 82.5
+  },
+  {
+    "id": 54,
+    "name": "函館",
+    "top": 13.9,
+    "left": 89.1
+  },
+  {
+    "id": 85,
+    "name": "渋谷",
+    "top": 14.7,
+    "left": 68.5
+  },
+  {
+    "id": 25,
+    "name": "北千住",
+    "top": 15.3,
+    "left": 77.9
+  },
+  {
+    "id": 45,
+    "name": "中野",
+    "top": 16,
+    "left": 63
+  },
+  {
+    "id": 76,
+    "name": "カワサキ",
+    "top": 16.1,
+    "left": 74.4
+  },
+  {
+    "id": 75,
+    "name": "滝沢",
+    "top": 17.3,
+    "left": 81.4
+  },
+  {
+    "id": 33,
+    "name": "北京",
+    "top": 18.2,
+    "left": 53.3
+  },
+  {
+    "id": 86,
+    "name": "飯田",
+    "top": 23.4,
+    "left": 64.7
+  },
+  {
+    "id": 74,
+    "name": "軽井沢",
+    "top": 23.4,
+    "left": 73.2
+  },
+  {
+    "id": 88,
+    "name": "さいたま",
+    "top": 23.6,
+    "left": 68
+  },
+  {
+    "id": 30,
+    "name": "青森津軽",
+    "top": 24.2,
+    "left": 89.5
+  },
+  {
+    "id": 73,
+    "name": "新潟",
+    "top": 25,
+    "left": 78.3
+  },
+  {
+    "id": 60,
+    "name": "青森ひがし",
+    "top": 25,
+    "left": 94.1
+  },
+  {
+    "id": 61,
+    "name": "酒田",
+    "top": 33.1,
+    "left": 88.4
+  },
+  {
+    "id": 22,
+    "name": "タイランド",
+    "top": 35.3,
+    "left": 49.7
+  },
+  {
+    "id": 1,
+    "name": "福井",
+    "top": 40,
+    "left": 69.5
+  },
+  {
+    "id": 4,
+    "name": "金沢",
+    "top": 40,
+    "left": 73.7
+  },
+  {
+    "id": 34,
+    "name": "福大附属",
+    "top": 41.6,
+    "left": 65.3
+  },
+  {
+    "id": 55,
+    "name": "山形米沢",
+    "top": 41.9,
+    "left": 87.2
+  },
+  {
+    "id": 2,
+    "name": "仙台",
+    "top": 43.6,
+    "left": 92.4
+  },
+  {
+    "id": 29,
+    "name": "前橋",
+    "top": 44.3,
+    "left": 81.3
+  },
+  {
+    "id": 66,
+    "name": "舞鶴",
+    "top": 45.2,
+    "left": 59.5
+  },
+  {
+    "id": 9,
+    "name": "シリコンバレー",
+    "top": 46.3,
+    "left": 97.6
+  },
+  {
+    "id": 31,
+    "name": "勝山",
+    "top": 48.2,
+    "left": 72.9
+  },
+  {
+    "id": 26,
+    "name": "北はりま",
+    "top": 48.6,
+    "left": 51.1
+  },
+  {
+    "id": 14,
+    "name": "丹波",
+    "top": 48.7,
+    "left": 55.1
+  },
+  {
+    "id": 15,
+    "name": "世田谷",
+    "top": 49.2,
+    "left": 88.6
+  },
+  {
+    "id": 28,
+    "name": "上田",
+    "top": 49.9,
+    "left": 76.8
+  },
+  {
+    "id": 5,
+    "name": "鯖江",
+    "top": 50,
+    "left": 69.6
+  },
+  {
+    "id": 41,
+    "name": "武生",
+    "top": 51.2,
+    "left": 66.3
+  },
+  {
+    "id": 23,
+    "name": "いわき",
+    "top": 52.7,
+    "left": 92.6
+  },
+  {
+    "id": 24,
+    "name": "京都南",
+    "top": 53.7,
+    "left": 58.4
+  },
+  {
+    "id": 19,
+    "name": "ひろしま",
+    "top": 58,
+    "left": 50
+  },
+  {
+    "id": 8,
+    "name": "東京",
+    "top": 58.8,
+    "left": 88
+  },
+  {
+    "id": 18,
+    "name": "名古屋",
+    "top": 59.8,
+    "left": 64.9
+  },
+  {
+    "id": 17,
+    "name": "奈良",
+    "top": 62.3,
+    "left": 60.9
+  },
+  {
+    "id": 6,
+    "name": "大阪",
+    "top": 64.3,
+    "left": 56.9
+  },
+  {
+    "id": 62,
+    "name": "沼津",
+    "top": 66.1,
+    "left": 67.7
+  },
+  {
+    "id": 11,
+    "name": "東京多摩",
+    "top": 66.5,
+    "left": 79.5
+  },
+  {
+    "id": 67,
+    "name": "伊豆大島",
+    "top": 67.8,
+    "left": 75.1
+  },
+  {
+    "id": 42,
+    "name": "幕張",
+    "top": 68,
+    "left": 96
+  },
+  {
+    "id": 27,
+    "name": "東京ベイ",
+    "top": 68.2,
+    "left": 91.9
+  },
+  {
+    "id": 56,
+    "name": "青山",
+    "top": 68.3,
+    "left": 88.1
+  },
+  {
+    "id": 3,
+    "name": "三重",
+    "top": 68.5,
+    "left": 63.6
+  },
+  {
+    "id": 38,
+    "name": "ちとから",
+    "top": 69,
+    "left": 84.2
+  },
+  {
+    "id": 32,
+    "name": "北九州",
+    "top": 69.4,
+    "left": 46.9
+  },
+  {
+    "id": 20,
+    "name": "南大阪",
+    "top": 72.8,
+    "left": 59.6
+  },
+  {
+    "id": 12,
+    "name": "湘南",
+    "top": 76.1,
+    "left": 71.2
+  },
+  {
+    "id": 43,
+    "name": "横浜",
+    "top": 77.3,
+    "left": 82.3
+  },
+  {
+    "id": 40,
+    "name": "品川",
+    "top": 77.4,
+    "left": 90.1
+  },
+  {
+    "id": 57,
+    "name": "鎌倉",
+    "top": 77.5,
+    "left": 78.7
+  },
+  {
+    "id": 59,
+    "name": "愛媛西予",
+    "top": 78.6,
+    "left": 56.8
+  },
+  {
+    "id": 51,
+    "name": "有明",
+    "top": 86.8,
+    "left": 44.8
+  },
+  {
+    "id": 13,
+    "name": "宮崎",
+    "top": 88.1,
+    "left": 51.6
+  },
+  {
+    "id": 69,
+    "name": "沖縄",
+    "top": 92.4,
+    "left": 41
+  },
+  {
+    "id": 16,
+    "name": "鹿児島",
+    "top": 95.6,
+    "left": 48.3
+  }
+];
+
+function getEffectiveSize(icon) {
+  return icon.size != null ? icon.size : HERO_CONFIG.iconSize;
+}
+
+function createIcon(icon) {
+  var item = document.createElement('div');
+  item.className = 'hero-icon';
+  item.style.top = icon.top + '%';
+  item.style.left = icon.left + '%';
+  item.style.setProperty('--hero-icon-size', getEffectiveSize(icon) + 'px');
+
+  var img = document.createElement('img');
+  img.src = HERO_CONFIG.iconBaseUrl + icon.id + '.png';
+  img.alt = 'PCN' + icon.name;
+  img.loading = 'lazy';
+
+  item.appendChild(img);
+
+  return item;
+}
+
+function applyTextStyleToEl(el, textStyle) {
+  if (!el || !textStyle) return;
+  var font = resolveHeroFont(textStyle.fontFamily);
+  el.style.setProperty('--hero-text-font-family', font.css);
+  el.style.setProperty('--hero-title-font-weight', String(font.titleWeight));
+  el.style.setProperty('--hero-body-font-weight', String(font.bodyWeight));
+  el.style.setProperty('--hero-title-size', textStyle.titleSize + 'em');
+  el.style.setProperty('--hero-title-line-height', String(textStyle.titleLineHeight));
+  el.style.setProperty('--hero-title-margin-bottom', textStyle.titleMarginBottom + 'em');
+  el.style.setProperty('--hero-body-size', textStyle.bodySize + 'em');
+  el.style.setProperty('--hero-body-line-height', String(textStyle.bodyLineHeight));
+  el.style.setProperty('--hero-text-opacity', String(textStyle.opacity != null ? textStyle.opacity : 1));
+}
+
+function initHero() {
+  var innerEl = document.querySelector('.hero-inner');
+  var mapEl = document.querySelector('.hero-map');
+  var yearsEl = document.getElementById('hero-years');
+  if (!mapEl) return;
+
+  if (innerEl) {
+    innerEl.style.setProperty('--hero-icon-size', HERO_CONFIG.iconSize + 'px');
+    if (HERO_CONFIG.textPadding) {
+      var tp = HERO_CONFIG.textPadding;
+      innerEl.style.setProperty('--hero-text-padding-top', tp.top + '%');
+      innerEl.style.setProperty('--hero-text-padding-bottom', tp.bottom + '%');
+      innerEl.style.setProperty('--hero-text-padding-left', tp.left + '%');
+      innerEl.style.setProperty('--hero-text-width', '100%');
+    }
+    applyTextStyleToEl(innerEl, HERO_CONFIG.textStyle);
+  }
+  mapEl.style.opacity = HERO_CONFIG.mapOpacity;
+  mapEl.innerHTML = '';
+
+  HERO_POSITIONS.forEach(function (icon) {
+    mapEl.appendChild(createIcon(icon));
+  });
+
+  if (yearsEl) {
+    yearsEl.textContent = String(new Date().getFullYear() - HERO_CONFIG.activityStartYear);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initHero);
+} else {
+  initHero();
+}

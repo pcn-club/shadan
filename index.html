@@ -13,10 +13,13 @@
 <meta property="og:description" content="一般社団法人PCNはPCN活動をするみなさんを応援します">
 <link rel="icon" href="http://shadan.pcn.club/image/favicon.ico">
 <link rel="stylesheet" type="text/css" href="./style.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Serif+JP:400,700&display=swap&subset=japanese">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto+Sans+JP:400,700&display=swap&subset=japanese">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Noto+Sans+JP:wght@300;400;700&family=Shippori+Mincho:wght@400;500&display=swap">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="./master.js"></script>
+<script src="./hero-fonts.js"></script>
+<script src="./hero-icons.js"></script>
 <script>
   $(function(){
     $('#hamburger').on('click', function () {
@@ -58,8 +61,16 @@
   </header><!-- /#header -->
 
   <div id="mainvisual">
-    <div>
-      <img src="./img/mainvisual.png" alt="すべてのこどもたちにプログラミングを。">
+    <div class="hero-inner">
+      <div class="hero-map" aria-hidden="true"></div>
+      <div class="hero-text">
+        <h2 class="hero-title">一般社団法人PCNは<br>PCN活動をするみなさんを応援します。</h2>
+        <p class="hero-body">
+          任意団体PCNの活動を始めて<span id="hero-years"></span>年が経過しました。<br>
+          おかげさまで世界各地で活動拠点が増えるにあたり<br>
+          ノウハウ共有やサポートの目的のために団体を創立しました。
+        </p>
+      </div>
     </div>
   </div><!-- /#mainvisual -->
 

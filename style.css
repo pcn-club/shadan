@@ -134,16 +134,113 @@ header ul{
 /* mainvisual */
 /* -------------------------------------------------------------- */
 #mainvisual *{margin: 0;padding: 0;}
-#mainvisual{background-color: #e6e6e6;}
-#mainvisual div{
-  margin: 0 auto;
+#mainvisual{
+  background-color: #e6e6e6;
   padding: 1em 0;
+}
+.hero-inner{
+  position: relative;
+  margin: 0 auto;
   width: 100%;
   max-width: 980px;
+  aspect-ratio: 980 / 460;
+  background-color: #fff;
+  overflow: hidden;
+  --hero-icon-size: 42px;
+  --hero-text-padding-top: 14%;
+  --hero-text-padding-bottom: 20%;
+  --hero-text-padding-left: 5%;
+  --hero-text-width: 100%;
+  --hero-text-font-family: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+  --hero-title-size: 3.25em;
+  --hero-title-line-height: 1.4;
+  --hero-title-margin-bottom: 1.1em;
+  --hero-body-size: 1.5em;
+  --hero-body-line-height: 1.6;
+  --hero-text-opacity: 1;
+  --hero-title-font-weight: 700;
+  --hero-body-font-weight: 400;
+}
+.hero-map{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hero-text{
+  position: absolute;
+  top: var(--hero-text-padding-top);
+  left: var(--hero-text-padding-left);
+  bottom: var(--hero-text-padding-bottom);
+  width: var(--hero-text-width);
+  z-index: 3;
+  box-sizing: border-box;
+  pointer-events: none;
+  color: #333;
+  font-family: var(--hero-text-font-family);
+  opacity: var(--hero-text-opacity);
+}
+.hero-title{
+  margin-bottom: var(--hero-title-margin-bottom);
+  font-size: var(--hero-title-size);
+  font-weight: var(--hero-title-font-weight, 700);
+  line-height: var(--hero-title-line-height);
+  letter-spacing: 0.02em;
+}
+.hero-body{
+  font-size: var(--hero-body-size);
+  line-height: var(--hero-body-line-height);
+  letter-spacing: 0.02em;
+  font-weight: var(--hero-body-font-weight, 400);
+}
+#hero-years{
+  font-weight: var(--hero-title-font-weight, 700);
+}
+.hero-icon{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  text-align: center;
+  line-height: 1.15;
+  --hero-icon-size: 42px;
+}
+.hero-icon img{
+  display: block;
+  width: var(--hero-icon-size, 42px);
+  height: auto;
 }
 /* 640 *//* ------- */
 @media screen and (max-width: 640px){
   #mainvisual{margin-top: 40px;}
+  .hero-inner{
+    aspect-ratio: auto;
+    min-height: 360px;
+  }
+  .hero-text{
+    position: relative;
+    padding: 1.25em 1em 0.5em;
+  }
+  .hero-map{
+    position: relative;
+    min-height: 220px;
+  }
+  .hero-title{
+    font-size: 1.25em;
+    margin-bottom: 0.8em;
+  }
+  .hero-body{
+    font-size: 0.85em;
+    line-height: 1.85;
+  }
+  .hero-inner{
+    --hero-icon-size: 28px;
+  }
+  .hero-icon{
+    width: 38px;
+  }
+  .hero-icon img{
+    width: 100%;
+    height: auto;
+  }
 }
 
 
