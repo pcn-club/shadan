@@ -238,6 +238,7 @@ header ul{
 #member li{width: 24%;text-align: center;}
 #member dd{padding-top: 0.5em;}
 #member dd.post{color: #999;font-size: 0.8em;}
+#member img { width: 201px; height: 220px; }
 
 /* 640 *//* ------- */
 @media screen and (max-width: 640px){
