@@ -921,6 +921,7 @@ function build(scene, arrive) {
     if (getMoney() <= 0) { ev.preventDefault(); renderMoneyState(); return; }
     setMoney(getMoney() - 1);
     if (window.BGM) BGM.coin(); // チャリン（表示はしない）
+    if (window.BGM) setTimeout(BGM.pause, 400); // ゲーセンへ飛んだら、こちらのBGMは止める（もどれば再開）
     setTimeout(renderMoneyState, 300);
   }
   document.getElementById('spot-go').addEventListener('click', pay, SIG);
@@ -1492,6 +1493,14 @@ var BGM = (function () {
     var go = function () { start(); window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go); };
     window.addEventListener('pointerdown', go); window.addEventListener('keydown', go);
   }
+  // ほかのタブ・アプリに移ったら止め、もどってきたら また鳴らす（iPhone で裏で鳴り続けないように）
+  var pausedByHide = false;
+  function pause() { if (timer) { pausedByHide = true; close(); } }
+  function resume() { if (pausedByHide && on && document.visibilityState === 'visible') { pausedByHide = false; start(); } }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') pause(); else resume(); });
+  window.addEventListener('pagehide', pause);
+  window.addEventListener('pageshow', resume);
+  window.addEventListener('focus', resume);
   setTimeout(function () {
     render();
     var b = document.getElementById('bgm-btn');
@@ -1513,7 +1522,7 @@ var BGM = (function () {
       });
     } catch (e) {}
   }
-  return { start: start, stop: close, setTrack: setTrack, coin: coin, armFirstGesture: armFirstGesture, state: function () { return { track: trackName, playing: !!timer }; } };
+  return { start: start, stop: close, pause: pause, setTrack: setTrack, coin: coin, armFirstGesture: armFirstGesture, state: function () { return { track: trackName, playing: !!timer }; } };
 })();
 </script>
 <script>
