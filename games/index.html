@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="http://shadan.pcn.club/image/favicon.ico">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap">
+<title>PCN GAMES</title>
+<style>
+  :root {
+    --ink: #3b3355; --cream: #fff6e0; --paper: #ffffff;
+    --pink: #ff7aa8; --yellow: #ffd84a; --cyan: #5fd8ff; --mint: #7fe0b0; --night: #1e1838;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--cream); color: var(--ink);
+    font-family: 'DotGothic16', monospace; letter-spacing: 1px; line-height: 1.7;
+    background-image: radial-gradient(rgba(59,51,85,.08) 1px, transparent 1px); background-size: 8px 8px;
+  }
+  a { color: var(--pink); text-decoration: none; }
+
+  /* ---- ログイン ---- */
+  #page { display: none; }
+  body.authed #page { display: block; }
+  body.authed #login { display: none; }
+  #login {
+    margin: 16vh auto 0; width: 300px; padding: 24px;
+    background: var(--night); color: #fff; border: 4px solid var(--ink); box-shadow: 8px 8px 0 var(--ink);
+    text-align: center;
+  }
+  #login h2 { margin: 0 0 16px; font-weight: normal; font-size: 26px; color: var(--yellow); text-shadow: 2px 2px 0 var(--pink); }
+  #login input {
+    display: block; width: 100%; margin: 0 0 12px; padding: 8px;
+    font: inherit; font-size: 16px; background: #fff; color: var(--ink); border: 2px solid #fff;
+  }
+  #login button, .btn {
+    width: 100%; padding: 8px; font: inherit; font-size: 18px; cursor: pointer;
+    background: var(--pink); color: #fff; border: none; box-shadow: 4px 4px 0 #000;
+  }
+  #login button:active, .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+  #login .err { color: #ff8a9a; min-height: 1.4em; margin: 10px 0 0; font-size: 14px; }
+
+  /* ---- ヘッダー ---- */
+  header {
+    background: var(--night); color: #fff; text-align: center; padding: 26px 12px 22px;
+    border-bottom: 6px solid var(--ink); position: relative; overflow: hidden;
+  }
+  header::before { /* 星 */
+    content: ''; position: absolute; inset: 0; opacity: .7;
+    background-image:
+      radial-gradient(#fff 1px, transparent 1.5px), radial-gradient(#ffd84a 1px, transparent 1.5px);
+    background-size: 46px 38px, 73px 61px; background-position: 0 0, 20px 14px;
+    animation: twinkle 2s steps(2) infinite;
+  }
+  @keyframes twinkle { 50% { opacity: .35; } }
+  .logo { position: relative; margin: 0; font-weight: normal; font-size: clamp(40px, 10vw, 76px); line-height: 1.1; letter-spacing: 4px; }
+  .logo span { display: inline-block; text-shadow: 4px 4px 0 #000; animation: hop 1.2s steps(2) infinite; }
+  .logo span:nth-child(1) { color: var(--pink); }
+  .logo span:nth-child(2) { color: var(--yellow); animation-delay: .1s; }
+  .logo span:nth-child(3) { color: var(--cyan); animation-delay: .2s; }
+  .logo span:nth-child(5) { color: var(--mint); animation-delay: .3s; }
+  .logo span:nth-child(6) { color: var(--pink); animation-delay: .4s; }
+  .logo span:nth-child(7) { color: var(--yellow); animation-delay: .5s; }
+  .logo span:nth-child(8) { color: var(--cyan); animation-delay: .6s; }
+  .logo span:nth-child(9) { color: var(--mint); animation-delay: .7s; }
+  .logo .gap { width: .4em; }
+  @keyframes hop { 50% { transform: translateY(-3px); } }
+  .tagline { position: relative; margin: 10px 0 0; font-size: clamp(14px, 3.6vw, 20px); color: #fff; }
+  .tagline span { display: inline-block; }
+  .tagline b { color: var(--yellow); font-weight: normal; }
+
+  main { width: 100%; max-width: 920px; margin: 0 auto; padding: 18px 12px 0; }
+
+  /* ---- HUD ---- */
+  .hud { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .chip {
+    background: var(--paper); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+    padding: 2px 12px; font-size: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .chip .k { color: #8a82a6; font-size: 12px; }
+  .chip.count { margin-left: auto; }
+  .chip.bgm { font: inherit; font-size: 14px; color: var(--ink); cursor: pointer; }
+  .chip.bgm.off { color: #a39cbd; background: #ece6f5; }
+  .chip.bgm:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+  .stars { color: var(--pink); letter-spacing: 0; }
+  @media (max-width: 560px) {
+    .hud { flex-wrap: nowrap; gap: 6px; }
+    .chip { padding: 2px 8px; font-size: 14px; gap: 4px; flex-direction: column; align-items: flex-start; line-height: 1.3; }
+    .chip .k { font-size: 10px; }
+    .stars { display: none; }
+  }
+
+  /* ---- マップ ---- */
+  #frame {
+    position: relative; width: 100%; border: 4px solid var(--ink); box-shadow: 8px 8px 0 var(--ink);
+    line-height: 0; background: #86d4f2; border-radius: 4px; overflow: hidden;
+  }
+  #map:focus { outline: none; }
+  #map { width: 100%; image-rendering: pixelated; image-rendering: crisp-edges; cursor: pointer; touch-action: manipulation; }
+  #label {
+    position: absolute; left: 10px; top: 10px; line-height: 1.4;
+    padding: 2px 10px; background: var(--paper); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+    font-size: 16px; pointer-events: none; display: none;
+  }
+  #toast {
+    position: absolute; left: 50%; top: 14px; transform: translateX(-50%); line-height: 1.4;
+    padding: 4px 14px; background: var(--yellow); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+    font-size: 16px; pointer-events: none; display: none; white-space: nowrap;
+  }
+  .howto { margin: 14px 0 0; font-size: 13px; color: #6d6588; text-align: center; }
+  .howto kbd { display: inline-block; padding: 0 6px; border: 2px solid var(--ink); background: #fff; font: inherit; line-height: 1.4; box-shadow: 2px 2px 0 var(--ink); }
+
+  /* ---- ゲーセン発見ダイアログ ---- */
+  #dialog {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(30, 24, 56, .55); line-height: 1.6;
+  }
+  #dialog.open { display: flex; }
+  .win {
+    width: min(92%, 420px); background: var(--night); color: #fff;
+    border: 4px solid #fff; outline: 4px solid var(--ink); box-shadow: 8px 8px 0 #000; padding: 16px 18px;
+  }
+  .win .new { color: var(--yellow); font-size: 14px; animation: blink .6s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .win h3 { margin: 2px 0 2px; font-weight: normal; font-size: 22px; color: var(--pink); }
+  .win .where { margin: 0 0 10px; font-size: 13px; color: #b7b0d6; }
+  .win ul { list-style: none; margin: 0 0 14px; padding: 0; }
+  .win li { display: flex; justify-content: space-between; gap: 8px; padding: 6px 8px; margin-bottom: 6px; background: #2c2550; border: 2px solid #4a4180; }
+  .win li .soon { color: #8f87b8; font-size: 12px; white-space: nowrap; }
+  .win li::before { content: '▶'; color: var(--yellow); margin-right: 6px; }
+  .win li span:first-child { flex: 1; }
+
+  /* ---- セクション ---- */
+  section { margin: 40px 0 0; }
+  h2.sec {
+    display: inline-block; margin: 0 0 14px; padding: 2px 14px; font-weight: normal; font-size: 22px;
+    background: var(--ink); color: #fff; box-shadow: 4px 4px 0 var(--pink);
+  }
+  .story {
+    background: var(--paper); border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+    padding: 16px 20px; font-size: 16px;
+  }
+  .story p { margin: 0 0 8px; }
+  .story p:last-child { margin: 0; }
+
+  .dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--paper); border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink);
+    padding: 10px 14px 12px; position: relative;
+  }
+  .card .no { font-size: 12px; color: #8a82a6; }
+  .card h4 { margin: 0; font-weight: normal; font-size: 18px; }
+  .card .reg { font-size: 12px; color: #fff; background: var(--pink); padding: 0 6px; display: inline-block; margin-bottom: 4px; }
+  .card ul { margin: 6px 0 0; padding: 0 0 0 1.2em; font-size: 14px; }
+  .card.locked { background: #ece6f5; color: #9a92b4; }
+  .card.locked h4 { letter-spacing: 6px; }
+  .card.locked .reg { background: #b9b0d0; }
+  .card.found::after {
+    content: 'GET!'; position: absolute; right: 10px; top: 8px; font-size: 13px;
+    color: var(--ink); background: var(--yellow); padding: 0 6px; border: 2px solid var(--ink); transform: rotate(6deg);
+  }
+
+  footer { margin: 50px 0 0; padding: 18px 12px 24px; text-align: center; font-size: 12px; color: #fff; background: var(--night); border-top: 6px solid var(--ink); }
+  footer a { color: var(--yellow); }
+  .reset { background: none; border: none; color: #8f87b8; font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; margin-top: 6px; }
+
+  /* ---- ゲーセンの枠（モーダルにしない） ---- */
+  #spot {
+    position: absolute; left: 8%; top: 24%; width: min(52%, 320px); line-height: 1.5; /* 日本海の空いているあたり */
+    background: var(--night); color: #fff; border: 3px solid #fff; outline: 3px solid var(--ink); box-shadow: 6px 6px 0 #000;
+    padding: 10px 14px 12px; display: none;
+  }
+  #spot.show { display: block; animation: pop .18s steps(3); }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+  #spot .new { color: var(--yellow); font-size: 13px; animation: blink .6s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .2; } }
+  #spot h3 { margin: 2px 0 0; font-weight: normal; font-size: 20px; color: var(--pink); }
+  #spot .where { margin: 0 0 4px; font-size: 12px; color: #b7b0d6; }
+  #spot .desc { margin: 0 0 10px; font-size: 13px; }
+  #spot .go { display: block; text-align: center; font-size: 16px; color: #fff; }
+  #spot .broke-msg { display: none; margin: 0 0 8px; font-size: 13px; color: var(--yellow); }
+  #spot.broke .broke-msg { display: block; }
+  #spot.broke .go { background: #6d6588; cursor: not-allowed; }
+  #label { top: auto !important; bottom: 10px; }
+  .card .hint, .card .desc { margin: 6px 0 0; font-size: 14px; }
+  .card .go { display: inline-block; margin-top: 8px; padding: 2px 10px; background: var(--pink); color: #fff; box-shadow: 3px 3px 0 var(--ink); font-size: 14px; }
+  @media (max-width: 560px) {
+    #spot { left: 3%; top: 20%; width: 48%; padding: 6px 8px 8px; border-width: 2px; outline-width: 2px; box-shadow: 4px 4px 0 #000; }
+    #spot .desc { display: none; } #spot .new { font-size: 10px; letter-spacing: 0; } #spot h3 { font-size: 15px; }
+    #spot .where { font-size: 10px; } #spot .go { font-size: 13px; padding: 4px; }
+  }
+</style>
+</head>
+
+<body>
+  <form id="login" autocomplete="off">
+    <h2>PCN GAMES</h2>
+    <input id="uid" type="text" placeholder="ID" autocapitalize="off">
+    <input id="upw" type="password" placeholder="パスワード">
+    <button type="button" id="login-btn">スタート</button>
+    <p class="err"></p>
+  </form>
+
+  <div id="page">
+    <header>
+      <h1 class="logo"><span>P</span><span>C</span><span>N</span><span class="gap"></span><span>G</span><span>A</span><span>M</span><span>E</span><span>S</span></h1>
+      <p class="tagline"><span>にっぽんじゅうの <b>ゲーセン</b> をさがして、</span><span>だいぼうけん！</span></p>
+    </header>
+
+    <main>
+      <div class="hud">
+        <div class="chip"><span class="k">いまいるところ</span><span id="hud-region">-</span></div>
+        <button class="chip bgm" id="bgm-btn" type="button">♪ BGM オン</button>
+        <div class="chip count"><span class="k">みつけたゲーセン</span><span id="hud-count">0 / 4</span></div>
+      </div>
+      <div id="frame">
+        <canvas id="map" tabindex="0"></canvas>
+        <div id="label"></div>
+        <div id="toast"></div>
+        <div id="spot">
+          <div class="new" id="spot-new"></div>
+          <h3 id="spot-name"></h3>
+          <p class="where" id="spot-place"></p>
+          <p class="desc" id="spot-desc"></p>
+          <p class="broke-msg">さどがしまの きんざんで きんを ほってくれば、また あそべるよ。</p>
+          <a class="btn go" id="spot-go" href="#" target="_blank" rel="noopener">はいってみる ▶</a>
+        </div>
+      </div>
+      <p class="howto">
+        パソコン：<kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> であるく　／　スマホ：いきたいところを タップ<br>
+        ゲーセンは めに みえない。うわさの ばしょへ あるいていくと…？　かごしまの フェリーのりばから おきなわへ、にいがたからは さどがしまへ いけるよ。
+      </p>
+
+      <section>
+        <h2 class="sec">ものがたり</h2>
+        <div class="story">
+          <p>ゲームが だいすきな ひとりの しょうねん。</p>
+          <p>ある日 「にっぽんの どこかに、かんばんも でていない ひみつの ゲーセンが ある」 という うわさを ききつけた。</p>
+          <p>たしか あのへんに あったはず…。ふくいの まちを でて、うわさを たよりに ゲーセンを さがす たびが はじまる！</p>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="sec">ゲーセンずかん</h2>
+        <div class="dex" id="dex"></div>
+        <div style="text-align:right"><button class="reset" id="reset">きろくを リセット</button></div>
+      </section>
+    </main>
+
+    <footer>
+      <a href="../">一般社団法人プログラミングクラブネットワーク</a><br>
+      © PCN
+    </footer>
+  </div>
+
+<script>
+// =====================================================================
+//  かわいいドット絵の日本地図（Natural Earth の海岸線を少し太らせたもの）
+// =====================================================================
+var META_MAIN = {"W":322,"H":350,"CELL":5,"U0":-740.7025414704411,"V0":-622.5364535521401,"ROT":0,"KX":90.05977181381914,"KY":110.57,"OKI":[0,0],"HSCALE":24};
+var DATA_MAIN = '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';
+var META_OKI = {"W":378,"H":442,"CELL":0.4,"U0":-887.1867412902661,"V0":-1140.410998725339,"ROT":0,"KX":90.05977181381914,"KY":110.57,"OKI":[0,0],"HSCALE":24};
+var DATA_OKI = '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';
+
+// ---- ドット絵パレット ----
+var PAL = {
+  k: '#3b3355', w: '#ffffff', l: '#e3e6f0', a: '#a3a8bd', A: '#6c7190',
+  r: '#ff5a5a', R: '#c43b4a', o: '#ffa64d', O: '#e07a2e', y: '#ffd84a', Y: '#d9a520',
+  g: '#7fd36b', G: '#3f9a52', b: '#c98a5a', B: '#8a5a3a', s: '#ffe0bd',
+  p: '#ffb3d1', P: '#f07aa8', u: '#7ea6ee', U: '#5578c8', c: '#d4f6ff',
+  v: '#b58ae6', V: '#8a5cc4', m: '#e8d7b0', d: '#f2dc8a', D: '#d9bc62'
+};
+
+// ---- スプライト（1文字 = 1ドット、'.' は透明） ----
+var SP = {
+  fuji: [
+    '..........kkk..........',
+    '.........kwwwk.........',
+    '........kwwwwwk........',
+    '.......kwwwlwwwk.......',
+    '......kwwlwwwwwwk......',
+    '.....kwuwwwuwwuwwk.....',
+    '....kuuuwuuuuwuuuuk....',
+    '...kuuuuuuuuuuuuuUuk...',
+    '..kuuuUuuuuuuuuuUUuuk..',
+    '.kuuuuuuuuuUuuuuuuuuuk.',
+    'kuuUuuuuuuuuuuuuuUuuuuk',
+    'kkkkkkkkkkkkkkkkkkkkkkk'],
+  mountain: [
+    '....kk....',
+    '...kwwk...',
+    '..kwuwuk..',
+    '.kuuuuUuk.',
+    'kuuUuuuuuk',
+    'kkkkkkkkkk'],
+  hill: [
+    '...kkk...',
+    '.kkgggkk.',
+    'kggGgggGk',
+    'kkkkkkkkk'],
+  tree: [
+    '.kkk.',
+    'kgggk',
+    'kgGgk',
+    '.kBk.',
+    '..k..'],
+  tokyoTower: [
+    '....k....', '....r....', '....r....', '...kwk...', '...rrr...', '...r.r...',
+    '..kwwwk..', '..r...r..', '..rr.rr..', '..r...r..', '.kwwwwwk.', '.r.r.r.r.',
+    '.rr...rr.', 'r.r...r.r', 'r.......r', 'k.......k'],
+  kaminarimon: [
+    '.kkkkkkkkkkk.', 'kAAAAAAAAAAAk', '.kkkkkkkkkkk.', '.krrrrrrrrrk.', '.kr..kkk..rk.',
+    '.kr.krrrk.rk.', '.kr.kwwwk.rk.', '.kr.krrrk.rk.', '.kr..kkk..rk.', '.kk.......kk.'],
+  clockTower: [
+    '....k....', '...krk...', '..krrrk..', '..kwwwk..', '..kwkwk..', '..kwwwk..', '.krrrrrk.',
+    '.kwwwwwk.', 'krrrrrrrk', 'kwwwwwwwk', 'kwkwwwkwk', 'kwkwwwkwk', 'kwwwkwwwk', 'kkkkkkkkk'],
+  camel: [
+    '..........kk.', '...kk.kk..kbbk', '..kbbkbbk.kbk.', '.kbbbbbbbkbbk.', 'kbbbbbbbbbbk..',
+    '.kbbbbbbbbk...', '..kb.kb.kb....', '..kk.kk.kk....'],
+  dune: [
+    '...kkkkk.........', '.kkddddddkk..kkk..', 'kddddDddddddkddddk', 'kDddddddDdddddDddk', 'kkkkkkkkkkkkkkkkkk'],
+  takoyaki: [
+    '.kk..kk..kk.', 'kbBkkbBkkbBk', 'kbgkkbbkkbgk', '.kk..kk..kk.', 'kyyyyyyyyyyk', '.kkkkkkkkkk.'],
+  tsutenkaku: [
+    '....k....', '...kak...', '..kaaak..', '..kayak..', '..kaaak..', '...kak...', '...kak...',
+    '...kak...', '..kaaak..', '..kaaak..', '.ka...ak.', '.ka...ak.', 'ka.....ak', 'k.......k'],
+  castle: [
+    '.....y.y.....', '.....kkk.....', '....kgggk....', '...kwwwwwk...', '....kgggk....',
+    '..kgggggggk..', '...kwkwkwk...', '...kwwwwwk...', '.kgggggggggk.', '..kwkwkwkwk..',
+    '..kwwwwwwwk..', '.kaaaaaaaaak.', 'kaaaaaaaaaaak', 'kkkkkkkkkkkkk'],
+  blackCastle: [
+    '.....y.y.....', '.....kkk.....', '....kAAAk....', '...kkkkkkk...', '....kAAAk....',
+    '..kAAAAAAAk..', '...kkwkwkk...', '...kkkkkkk...', '.kAAAAAAAAAk.', '..kkwkwkwkk..',
+    '..kkkkkkkkk..', '.kaaaaaaaaak.', 'kaaaaaaaaaaak', 'kkkkkkkkkkkkk'],
+  kinkaku: [
+    '.....y.....', '....kyk....', '..kyyyyyk..', '...kyYyk...', '.kyyyyyyyk.', '..kyYyYyk..',
+    '..kyyyyyk..', '.kkkkkkkkk.', 'uuuuuuuuuuu'],
+  torii: [
+    'rrrrrrrrrrr', 'kRRRRRRRRRk', '..r.....r..', '.rrrrrrrrr.', '..r.....r..', '..r.....r..',
+    '..r.....r..', '..k.....k..'],
+  deer: ['B.B....', '.Bk....', 'kbbk...', 'kbkbbbk', '.kbwbbb', '..bbbbk', '..b..b.'],
+  apple: ['....k...', '...kGk..', '.kkrkrk.', 'krwrrrrk', 'krwrrrrk', 'krrrrrRk', '.krrrRk.', '..kkkk..'],
+  cow: ['........kk', '.kkkkkkkwk', 'kwwkkwwwwk', 'kwkkwwwkpk', 'kwwwwwkkk.', '.kwkkwkk..', '.kk..kk...'],
+  crab: ['kr.....rk', '.rr...rr.', '..krrrk..', '.rrkrkrr.', 'r.rrrrr.r', '.r.r.r.r.'],
+  lavender: ['.v.v.v.v.v.v', 'vVvVvVvVvVvV', 'GvGvGvGvGvGv', 'vGvGvGvGvGvG'],
+  sakura: ['.kpppk.', 'kpPpppk', 'kppppPk', 'kpPpppk', '.kpBpk.', '..kBk..', '..kBk..', '.kkkkk.'],
+  kokeshi: ['.kkkk.', 'kAAAAk', 'kssssk', 'kskskk', '.kssk.', 'krrrrk', 'krywrk', 'krrrrk', 'kkkkkk'],
+  gassho: ['....k....', '...kBk...', '..kBwBk..', '.kBwwwBk.', 'kBwwwwwBk', '.kbbbbbk.', '.kbwbwbk.', '.kkkkkkk.'],
+  monkey: ['..kkkk..', '.kbbbbk.', '.kbsskk.', '.kskssk.', 'ckbbbbkc', 'cccccccc', '.cccccc.'],
+  tea: ['GgGgGgGgGg', 'gGgGgGgGgG', 'GgGgGgGgGg'],
+  udon: ['.w.w.w.w..', 'kkkkkkkkkk', 'kwywwywwwk', '.kRRRRRRk.', '..kRRRRk..', '...kkkk...'],
+  mikan: ['..kG..', '.kook.', 'kooook', 'koooOk', '.kOOk.', '..kk..'],
+  peach: ['..Gk..', '.kppk.', 'kppPpk', 'kpppPk', '.kpPk.', '..kk..'],
+  ramen: ['.y.w.y.', 'kwwwwwk', 'kRwRwRk', '.kRRRk.', '..kkk..'],
+  onsen: ['.r..r..r.', 'r..r..r..', '.r..r..r.', '.........', 'rr.....rr', '.rrrrrrr.'],
+  sakurajima: ['....kk.kk....', '...kBBkBBk...', '..kbbbbbbbk..', '.kbbBbbbbbbk.', 'kbbbbbbbBbbbk', 'kkkkkkkkkkkkk'],
+  palm: ['.GG..GG.', 'GGGGGGGG', 'G.GbbG.G', '...b....', '...b....', '....b...', '....b...', '...kkk..'],
+  shuri: ['....rrr....', '...RRRRR...', '..rrrrrrr..', '.RRRRRRRRR.', '..ryryryr..', '.rrrrrrrrr.', 'kkkkkkkkkkk'],
+  shisa: ['.k...k.', 'koookoo', 'okookok', 'oooooo.', 'ooooook', '.o..o..'],
+  boat: ['....k....', '....kw...', '....kww..', 'kkkkkkkkk', '.kRRRRRk.'],
+  ferry: ['.....kkk......', '....kwwwk.....', '.kkkkkkkkkkk..', 'kwkwkwkwkwkwk.', 'kwwwwwwwwwwwwk', '.kUUUUUUUUUUk.'],
+  whale: ['..kkkkkk......', '.kUUUUUUk..kk.', 'kUkUUUUUUkkUUk', 'kUUUUUUUUUUUk.', '.kllllllllkk..', '..kkkkkkkk....'],
+  fish: ['.k..', 'kok.', 'oook', 'kok.'],
+  cloud: ['....wwww.......', '..wwwwwwww.www.', '.wwwwwwwwwwwwww', 'wwwwwwwwwwwwwwl', '.lllllllllllll.'],
+  smallCloud: ['..www...', '.wwwwww.', 'wwwwwwwl', '.lllll..']
+};
+
+// ---- 主人公（元気な男の子） 向き: down / up / right（left は right を反転）----
+var BOY_HEAD_DOWN = [
+  '...kkkk...', '..kyyyyk..', '.kyyryyyk.', '.kkkkkkkk.', '.kkssssskk', '.kskssksk.', '.kssssssk.', '..ksrrsk..'];
+var BOY_HEAD_UP = [
+  '...kkkk...', '..kyyyyk..', '.kyyyyyyk.', '.kyyyyyyk.', '.kkkkkkkk.', '.kkkkkkkk.', '.kkkkkkkk.', '..kssssk..'];
+var BOY_HEAD_RIGHT = [
+  '...kkkk...', '..kyyyyk..', '.kyyyyryk.', '.kkkkkkkkk', '.kkkssssk.', '.kkssskssk', '.kksssssk.', '..kkssskk.'];
+var BOY_BODY_FRONT = ['.krrwwrrk.', 'ksrrwwrrsk', 'kskrrrrksk', '.kUUUUUUk.'];
+var BOY_BODY_SIDE = ['..krrrrk..', '..krrsrk..', '..krrsrk..', '..kUUUUk..'];
+var BOY_LEGS = {
+  frontStand: ['.kUUkkUUk.', '..ks..sk..', '..kk..kk..'],
+  frontA:     ['.kUUkkUUk.', '..ks..kk..', '..kk......'],
+  frontB:     ['.kUUkkUUk.', '..kk..sk..', '......kk..'],
+  sideStand:  ['..kUUUk...', '...kssk...', '...kkkk...'],
+  sideA:      ['.kUk.kUk..', '.ks...sk..', 'kk.....kk.'],
+  sideB:      ['..kUUUk...', '...ksk....', '...kkkk...']
+};
+
+// ---- ゲーセン ----
+SP.arcadeA = [
+  '.kkkkkkkkkkk.', 'kVVVVVVVVVVVk', 'kVyVcVpVyVcVk', 'kVVVVVVVVVVVk', '.kkkkkkkkkkk.',
+  '.kuuuuuuuuuk.', '.kuckuuukcuk.', '.kuuuuuuuuuk.', '.kuuukkkuuuk.', '.kuuukcckuuk.',
+  '.kuuukcckuuk.', '.kkkkkkkkkkk.'];
+SP.arcadeB = SP.arcadeA.map(function (r, j) { return j === 2 ? 'kVcVpVyVcVpVk' : r; });
+SP.question = ['.kkkk.', 'kwwwwk', 'kwkkwk', 'kkkwwk', '.kwwk.', '.kkkk.', '.kwwk.', '.kkkk.'];
+SP.star = ['...k...', '..kyk..', 'kkkyykk', 'kyyyyyk', '.kyyyk.', 'kyykyyk', 'kk...kk'];
+SP.dock = ['....k.....', '....kr....', '....krr...', 'kkkkkkkkkk', '.kwwwwwwk.', '..kkkkkk..'];
+SP.target = ['k...k', '.k.k.', '..k..', '.k.k.', 'k...k'];
+
+// ---- 沖縄 ----
+SP.shisa = [ // 口をあけた「阿」
+  '..kkk...kkk..', '.kOOOkkkOOOk.', 'kOOoooooooOOk', 'kOowkoooowkOk', 'kOooookoooOOk',
+  'kOOkrrrrrkOOk', 'kOOkwkwkwkOOk', '.kOOkkkkkOOk.', '.kooooooooOk.', '.kokoooookok.',
+  'kaaaaaaaaaaak', 'kkkkkkkkkkkkk'];
+SP.shisaR = [ // 口をとじた「吽」
+  '..kkk...kkk..', '.kOOOkkkOOOk.', 'kOOoooooooOOk', 'kOkwoooookwOk', 'kOOoookooooOk',
+  'kOOookkkooOOk', 'kOOoooooooOOk', '.kOOOOOOOOk..', '.kOooooooook.', '.kokoooookok.',
+  'kaaaaaaaaaaak', 'kkkkkkkkkkkkk'];
+// テーマパーク（森とバルーンと恐竜。ロゴ等は描かない）
+SP.junglePark = [
+  '.....kkk........', '....krrrk.......', '...kryyyrk......', '...krrrrrk......', '...kryyyrk......',
+  '....krrrk.......', '.....k.k........', '.....kBk.....kk.', '..kkkkkkkk..kggk', '.kGGgGGGgGk.kgkg',
+  'kGGGGGgGGGGkkggk', 'kGgGGGGGGgGkgg..', 'kGGGgGGgGGGkg...', '.kGGGGGGGGk.gg..', '..kkkBBkkk..gggg',
+  '....kBBk....g.g.', '....kBBk....g..g', '...kkkkkk.......'];
+
+// ---- 佐渡金山 ----
+SP.mine = ['...kkkkk...', '..kBBBBBk..', '.kBkkkkkBk.', 'kBkknnnkkBk', 'kBknnnnnkBk', 'kBknnnnnkBk', 'kkkkkkkkkkk'];
+SP.gold = ['..ky..', '.kyyyk', 'kyywyk', 'kyyyYk', '.kYYk.'];
+SP.ladder = ['kB...Bk', 'kBBBBBk', 'kB...Bk', 'kBBBBBk', 'kB...Bk', 'kBBBBBk', 'kB...Bk'];
+SP.batA = ['k.....k', 'kk.k.kk', '.kkkkk.', '..krk..'];
+SP.batB = ['.......', '..kkk..', 'kkkkkkk', 'k.krk.k'];
+SP.oil = ['.kkk.', 'kaaak', 'koook', 'kOOOk', 'kkkkk'];
+SP.bigGold = ['...kk...', '..kyyk..', '.kyywyk.', 'kyyyyyyk', 'kyywyyYk', '.kYyyYk.', '..kkkk..'];
+
+
+var REGIONS = [null,
+  { name: 'ほっかいどう', c: ['#c4f0dc', '#a8e6cf', '#7cc7ab'] },
+  { name: 'とうほく',     c: ['#eaf6d2', '#d4ebb0', '#a9cc80'] },
+  { name: 'かんとう',     c: ['#ffe3d0', '#ffcfb0', '#e8a882'] },
+  { name: 'ちゅうぶ',     c: ['#fff3c4', '#ffe79a', '#e6c463'] },
+  { name: 'きんき',       c: ['#ffd0d0', '#ffb3b0', '#e88a88'] },
+  { name: 'ちゅうごく',   c: ['#e6dbf5', '#d2c0ec', '#a891cf'] },
+  { name: 'しこく',       c: ['#d2f5ec', '#b5ead7', '#86ccb3'] },
+  { name: 'きゅうしゅう', c: ['#ffe0ec', '#ffc8dd', '#e89cba'] },
+  { name: 'おきなわ',     c: ['#fff8cc', '#fff0a8', '#e6cf70'] }
+];
+
+// 名物（経度, 緯度, ずらし dx/dy[ドット]）
+// 名物（実際の場所の 経度, 緯度。絵の中心をその場所に置く）
+// dx/dy は、ほぼ同じ場所に2つ重なるときだけ最小限ずらす（ドット）
+var OBJS = [
+  // ほっかいどう
+  { s: 'clockTower', lon: 141.354, lat: 43.063 },        // 札幌市時計台
+  { s: 'lavender', lon: 142.38, lat: 43.34 },            // 富良野
+  { s: 'cow', lon: 143.2, lat: 42.92 },                  // 十勝
+  { s: 'crab', lon: 144.38, lat: 42.98 },                // 釧路
+  // とうほく
+  { s: 'sakura', lon: 140.464, lat: 40.608 },            // 弘前城
+  { s: 'apple', lon: 140.6, lat: 40.45 },                // 津軽のりんご畑
+  { s: 'kokeshi', lon: 140.72, lat: 38.74 },             // 鳴子
+  // かんとう
+  { s: 'torii', lon: 139.599, lat: 36.758 },             // 日光
+  { s: 'tokyoTower', lon: 139.745, lat: 35.659, dx: -4 },// 東京タワー
+  { s: 'kaminarimon', lon: 139.796, lat: 35.711, dx: 5 },// 浅草・雷門
+  // ちゅうぶ
+  { s: 'fuji', lon: 138.727, lat: 35.361 },              // 富士山
+  { s: 'castle', lon: 136.9, lat: 35.185 },              // 名古屋城
+  { s: 'gassho', lon: 136.906, lat: 36.257 },            // 白川郷
+  { s: 'monkey', lon: 138.46, lat: 36.733 },             // 地獄谷野猿公苑
+  { s: 'tea', lon: 138.2, lat: 34.78 },                  // 牧之原の茶畑
+  // きんき
+  { s: 'tsutenkaku', lon: 135.506, lat: 34.652 },        // 通天閣
+  { s: 'takoyaki', lon: 135.501, lat: 34.669, dx: -7, dy: -2 }, // 道頓堀
+  { s: 'kinkaku', lon: 135.729, lat: 35.039 },           // 金閣寺
+  { s: 'deer', lon: 135.84, lat: 34.685 },               // 奈良公園
+  { s: 'castle', lon: 134.694, lat: 34.839 },            // 姫路城
+  // ちゅうごく
+  { s: 'dune', lon: 134.23, lat: 35.54 },                // 鳥取砂丘
+  { s: 'camel', lon: 134.23, lat: 35.54, dy: -3 },
+  { s: 'peach', lon: 133.93, lat: 34.66 },               // 岡山
+  { s: 'torii', lon: 132.32, lat: 34.296, sea: true },   // 厳島神社の大鳥居
+  // しこく
+  { s: 'udon', lon: 134.05, lat: 34.34 },                // 高松
+  { s: 'mikan', lon: 132.77, lat: 33.84 },               // 松山
+  { s: 'mikan', lon: 132.42, lat: 33.46 },               // 八幡浜
+  // きゅうしゅう
+  { s: 'ramen', lon: 130.42, lat: 33.59 },               // 博多
+  { s: 'onsen', lon: 131.49, lat: 33.28, steam: true },  // 別府
+  { s: 'blackCastle', lon: 130.706, lat: 32.806 },       // 熊本城
+  { s: 'sakurajima', lon: 130.66, lat: 31.585, smoke: true }, // 桜島
+  { s: 'mine', lon: 138.25, lat: 38.04 }                 // 佐渡金山
+];
+// おきなわの地図（上陸しても ゲーセンは ない）
+var OKI_OBJS = [
+  { s: 'shuri', lon: 127.719, lat: 26.217 },                    // 首里城
+  { s: 'shisa', lon: 127.719, lat: 26.217, dx: 11, dy: 3 },     // 首里城を守るシーサー（左右一対）
+  { s: 'shisaR', lon: 127.719, lat: 26.217, dx: 25, dy: 3 },
+  { s: 'junglePark', lon: 127.988, lat: 26.648 },               // ジャングリア沖縄（今帰仁村呉我山）
+  { s: 'palm', lon: 127.75, lat: 26.35 }, { s: 'palm', lon: 127.80, lat: 26.42 }, { s: 'palm', lon: 127.88, lat: 26.48 },
+  { s: 'palm', lon: 128.12, lat: 26.62 }, { s: 'palm', lon: 128.2, lat: 26.72 },
+  { s: 'palm', lon: 128.25, lat: 26.8 }, { s: 'palm', lon: 127.68, lat: 26.12 },
+  { s: 'mikan', lon: 128.17, lat: 26.75 }
+];
+var OKI_SEA = [
+  { s: 'whale', lon: 128.4, lat: 26.3, spout: true },
+  { s: 'boat', lon: 127.5, lat: 26.5, drift: 1 },
+  { s: 'boat', lon: 128.5, lat: 26.9, drift: -1 },
+  { fish: true, lon: 127.6, lat: 26.0 }, { fish: true, lon: 128.2, lat: 26.4 }, { fish: true, lon: 127.7, lat: 26.75 }
+];
+// ゲーセン（名前・場所・遊べるゲーム）
+var ARCADES = [
+  { name: 'TOKYO 8 GAMES', place: 'とうきょう・かめあり', r: 3, lon: 139.847, lat: 35.766,
+    hint: 'とうきょうの ひがしの はし、かつしかの あたり…？',
+    desc: 'ブラウザゲームに ボードゲーム、IchigoJam で あそびながら プログラミングも まなべる！', url: 'https://tokyo8games.com/' },
+  { name: 'TIL', place: 'ふくい・かつやま', r: 4, lon: 136.5, lat: 36.06,
+    hint: 'ふくいの やまの ほう。きょうりゅうが いるらしい…',
+    desc: 'どうぶつたちの もりを たんけんして、どうぐを つくり、なかまと むらを そだてる 3D サバイバル！', url: 'https://yrm.dino.town/til/' },
+  { name: 'パズルゲーム', place: 'おおさか・ほんまち', r: 5, lon: 135.56, lat: 34.62, // 宝塚と近すぎるので少し南東へ
+   
+    hint: 'おおさかの まんなか、ビルが ならぶ まちの どこか…',
+    desc: 'ほのおと こおり、パンダと たけ、そうこパズル、3D めいろ。ぜんぶ とけることを たしかめた もんだいだけ！', url: 'https://applil.github.io/Games/' },
+  { name: 'AIゲームセンター', place: 'ひょうご・たからづか', r: 5, lon: 135.27, lat: 34.88, // 本町と近すぎるので少し北西へ
+   
+    hint: 'ひょうごの かげきの まち…？',
+    desc: 'AI と いっしょに つくった ゲームが いっぱい。インストール なしで すぐ あそべる！', url: 'https://ymori.com/aigame/' }
+];
+// フェリー
+//  ・鹿児島新港 ⇔ 那覇港（マルエーフェリー／マリックスラインの 鹿児島〜那覇航路）… 画面のはしへ出て、地図が切り替わる
+//  ・新潟港 ⇔ 両津港（佐渡汽船）… 佐渡に着くと、そのまま金山の洞窟へ
+var PORTS = {
+  main: [
+    { id: 'kago', lon: 130.566, lat: 31.576, edge: 'left', go: 'oki', arriveAt: 'naha', name: 'かごしま しんこう', msg: 'フェリーで おきなわへ しゅっこう！' },
+    { id: 'niigata', lon: 139.06, lat: 37.93, toLon: 138.44, toLat: 38.08, go: 'cave', name: 'にいがた こう', msg: 'さどきせんで さどがしまへ！' }
+  ],
+  oki: [
+    { id: 'naha', lon: 127.672, lat: 26.207, edge: 'right', go: 'main', arriveAt: 'kago', name: 'なは こう', msg: 'フェリーで かごしまへ かえろう！' }
+  ]
+};
+// おかね（内部だけで数える。ゲーセンに入ると 1 へる。佐渡の金で ふえる）
+// 3 より少ないときは、時間がたつと 10分に1ずつ 3 まで もどる
+var MONEY_MAX = 9, MONEY_BASE = 3, REGEN_MS = 10 * 60 * 1000;
+function getMoney() {
+  try {
+    var v = localStorage.getItem('pcn_games_money'); v = v === null ? MONEY_BASE : +v;
+    if (v < MONEY_BASE) {
+      var t0 = +localStorage.getItem('pcn_games_money_t') || Date.now(), gain = Math.floor((Date.now() - t0) / REGEN_MS);
+      if (gain > 0) {
+        v = Math.min(MONEY_BASE, v + gain);
+        localStorage.setItem('pcn_games_money', v);
+        if (v >= MONEY_BASE) localStorage.removeItem('pcn_games_money_t');
+        else localStorage.setItem('pcn_games_money_t', t0 + gain * REGEN_MS);
+      } else if (!localStorage.getItem('pcn_games_money_t')) localStorage.setItem('pcn_games_money_t', t0);
+    }
+    return v;
+  } catch (e) { return MONEY_BASE; }
+}
+function setMoney(v) {
+  v = Math.max(0, Math.min(MONEY_MAX, v));
+  try {
+    localStorage.setItem('pcn_games_money', v);
+    if (v >= MONEY_BASE) localStorage.removeItem('pcn_games_money_t');
+    else if (!localStorage.getItem('pcn_games_money_t')) localStorage.setItem('pcn_games_money_t', Date.now());
+  } catch (e) {}
+  return v;
+}
+// 海のもの
+var SEA = [
+  { s: 'boat', lon: 135.0, lat: 37.6, drift: 1 },
+  { s: 'boat', lon: 138.5, lat: 40.2, drift: -1 },
+  { s: 'ferry', lon: 132.5, lat: 36.6, drift: 1 },
+  { s: 'whale', lon: 134.3, lat: 32.2, spout: true },
+  { s: 'whale', lon: 142.6, lat: 37.0, spout: true },
+  { s: 'ferry', lon: 138.2, lat: 33.6, drift: -1 },
+  { s: 'boat', lon: 141.6, lat: 35.0, drift: 1 },
+  { s: 'boat', lon: 144.0, lat: 41.6, drift: -1 },
+  { fish: true, lon: 136.5, lat: 33.4 }, { fish: true, lon: 140.0, lat: 34.2 }, { fish: true, lon: 130.0, lat: 35.0 },
+  { whirl: true, lon: 134.66, lat: 34.24 }  // 鳴門の渦潮
+];
+
+// ---------------------------------------------------------------------
+function hexRGB(h) { var n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; }
+function hash(a, b) { var h = (a * 374761393 + b * 668265263) | 0; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; }
+var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+function dith(x, y) { return (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16; }
+function makeSprite(rows) {
+  var w = 0; rows.forEach(function (r) { w = Math.max(w, r.length); });
+  var c = document.createElement('canvas'); c.width = w; c.height = rows.length;
+  var x = c.getContext('2d');
+  rows.forEach(function (r, j) { for (var i = 0; i < r.length; i++) { var ch = r[i]; if (ch !== '.' && PAL[ch]) { x.fillStyle = PAL[ch]; x.fillRect(i, j, 1, 1); } } });
+  return c;
+}
+function decode(data, cb) {
+  var bin = Uint8Array.from(atob(data), function (c) { return c.charCodeAt(0); });
+  var ds = new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+  new Response(ds).arrayBuffer().then(function (b) { cb(new Uint8Array(b)); });
+}
+var BUFS = {}, MAIN_SIZE = null, current = null;
+function startMap() {
+  if (startMap.done) return; startMap.done = true;
+  decode(DATA_MAIN, function (a) { BUFS.main = a; decode(DATA_OKI, function (b) { BUFS.oki = b; build('main', false); }); });
+}
+
+function build(scene, arrive) {
+  // 前の地図を片づける
+  if (current) { current.ac.abort(); clearInterval(current.timer); }
+  var ac = new AbortController(), SIG = { signal: ac.signal };
+  current = { ac: ac, timer: 0 };
+  var META = scene === 'oki' ? META_OKI : META_MAIN, buf = BUFS[scene];
+  var OBJS_S = scene === 'oki' ? OKI_OBJS : OBJS, SEA_S = scene === 'oki' ? OKI_SEA : SEA;
+  var ARC_S = scene === 'oki' ? [] : ARCADES, PORT_S = PORTS[scene];
+  var GW = META.W, GH = META.H, N = GW * GH;
+  var hq = buf.subarray(0, N), rg = buf.subarray(N, 2 * N);
+
+  // 余白を詰める（北が上）
+  var i0 = GW, i1 = 0, j0 = GH, j1 = 0;
+  for (var k = 0; k < N; k++) if (hq[k]) { var ii = k % GW, jj = (k / GW) | 0; i0 = Math.min(i0, ii); i1 = Math.max(i1, ii); j0 = Math.min(j0, jj); j1 = Math.max(j1, jj); }
+  var M = 10;
+  if (scene === 'main') { i0 -= M; i1 += M; j0 -= M; j1 += M + 6; MAIN_SIZE = [i1 - i0 + 1, j1 - j0 + 1]; }
+  else { // 本土と同じ大きさのキャンバスに、島を真ん中に置く
+    var ci = (i0 + i1) >> 1, cj = (j0 + j1) >> 1;
+    i0 = ci - (MAIN_SIZE[0] >> 1); i1 = i0 + MAIN_SIZE[0] - 1; j0 = cj - (MAIN_SIZE[1] >> 1); j1 = j0 + MAIN_SIZE[1] - 1;
+  }
+  var CW = i1 - i0 + 1, CH = j1 - j0 + 1;
+  var cv = document.getElementById('map'), ctx = cv.getContext('2d');
+  cv.width = CW; cv.height = CH;
+  ctx.imageSmoothingEnabled = false;
+
+  // 画面座標（x右=東, y下=南）
+  function cellAt(x, y) { var i = x + i0, j = j1 - y; return (i < 0 || j < 0 || i >= GW || j >= GH) ? -1 : j * GW + i; }
+  function landAt(x, y) { var c = cellAt(x, y); return c >= 0 ? rg[c] : 0; }
+  function toXY(lon, lat) {
+    if (lat < 27.5) { lon += META.OKI[0]; lat += META.OKI[1]; }
+    var u = (lon - 137) * META.KX, v = (lat - 36) * META.KY;
+    var i = Math.floor((u - META.U0) / META.CELL), j = Math.floor((v - META.V0) / META.CELL);
+    return [i - i0, j1 - j];
+  }
+
+  // 陸までの距離
+  var dist = new Uint8Array(CW * CH).fill(255), q = [];
+  for (var y = 0; y < CH; y++) for (var x = 0; x < CW; x++) if (landAt(x, y)) { dist[y * CW + x] = 0; q.push(y * CW + x); }
+  for (var h = 0; h < q.length; h++) {
+    var c = q[h], cx = c % CW, cy = (c / CW) | 0;
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) {
+      var nx = cx + d[0], ny = cy + d[1]; if (nx < 0 || ny < 0 || nx >= CW || ny >= CH) return;
+      var n = ny * CW + nx; if (dist[n] > dist[c] + 1) { dist[n] = dist[c] + 1; if (dist[n] < 10) q.push(n); }
+    });
+  }
+
+  // ================= 背景地図 =================
+  var bg = document.createElement('canvas'); bg.width = CW; bg.height = CH;
+  var bx = bg.getContext('2d'), img = bx.createImageData(CW, CH), d = img.data;
+  var sea0 = hexRGB('#86d4f2'), sea1 = hexRGB('#9fdff6'), sea2 = hexRGB('#bdeafa'), sand = hexRGB('#fff4d0');
+  var line = hexRGB('#3b3355'), border = [];
+  var RC = REGIONS.map(function (r) { return r && r.c.map(hexRGB); });
+  for (var y = 0; y < CH; y++) for (var x = 0; x < CW; x++) {
+    var p = (y * CW + x) * 4, r = landAt(x, y), col;
+    if (!r) {
+      var ds = dist[y * CW + x];
+      if (ds === 1) col = line;
+      else if (ds === 2) col = sea2;
+      else if (ds <= 4 && dith(x, y) < 0.5) col = sea1;
+      else col = sea0;
+    } else {
+      var c3 = RC[r];
+      col = c3[1];
+      // ぷっくり感：北西が明るく、南東が暗い
+      var n = landAt(x, y - 1), w = landAt(x - 1, y), s = landAt(x, y + 1), e = landAt(x + 1, y);
+      var n2 = landAt(x, y - 2), w2 = landAt(x - 2, y);
+      if (!n || !w) col = c3[0];
+      else if ((!n2 || !w2) && dith(x, y) < 0.5) col = c3[0];
+      if (!s || !e) col = c3[2];
+      // 地方の境目
+      if ((n && n !== r) || (w && w !== r)) col = c3[2];
+    }
+    d[p] = col[0]; d[p + 1] = col[1]; d[p + 2] = col[2]; d[p + 3] = 255;
+  }
+  bx.putImageData(img, 0, 0);
+
+
+  // ---- 地方ハイライト ----
+  var hl = [];
+  for (var r = 1; r <= 9; r++) {
+    var hc = document.createElement('canvas'); hc.width = CW; hc.height = CH;
+    var hx = hc.getContext('2d'), hi = hx.createImageData(CW, CH), hd = hi.data;
+    for (var y = 0; y < CH; y++) for (var x = 0; x < CW; x++) {
+      if (landAt(x, y) !== r) continue;
+      var k = (y * CW + x) * 4;
+      var edge = landAt(x - 1, y) !== r || landAt(x + 1, y) !== r || landAt(x, y - 1) !== r || landAt(x, y + 1) !== r;
+      if (edge) { hd[k] = 255; hd[k + 1] = 255; hd[k + 2] = 255; hd[k + 3] = 255; }
+      else if (dith(x, y) < 0.25) { hd[k] = 255; hd[k + 1] = 255; hd[k + 2] = 255; hd[k + 3] = 200; }
+    }
+    hx.putImageData(hi, 0, 0); hl[r] = hc;
+  }
+
+  // ---- スプライト ----
+  var IMG = {}; for (var key in SP) IMG[key] = makeSprite(SP[key]);
+  IMG.ferryR = (function (c) { var f = document.createElement('canvas'); f.width = c.width; f.height = c.height; var x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; })(IMG.ferry);
+  IMG.boyHead = makeSprite(BOY_HEAD_DOWN.slice(0, 7));
+
+  // 置物（名物）
+  var items = OBJS_S.map(function (o) {
+    var p = toXY(o.lon, o.lat);
+    var im = IMG[o.s];
+    return { o: o, img: im, x: p[0] + (o.dx || 0), y: p[1] + (o.dy || 0) + (im.height >> 1) };
+  });
+  // ゲーセンは地図には描かない（場所だけ持つ）
+  var arcades = ARC_S.map(function (a, n) { var p = toXY(a.lon, a.lat); return { a: a, n: n, x: p[0], y: p[1] }; });
+  // 名物の場所（木や山を置かないため）
+  var busy = new Uint8Array(CW * CH);
+  items.forEach(function (it) {
+    var w = it.img.width, hgt = it.img.height;
+    for (var y = it.y - hgt - 3; y <= it.y + 3; y++) for (var x = it.x - (w >> 1) - 3; x <= it.x + (w >> 1) + 3; x++)
+      if (x >= 0 && y >= 0 && x < CW && y < CH) busy[y * CW + x] = 1;
+  });
+  // 標高で山・丘・木を散らす
+  var deco = [];
+  for (var y = 4; y < CH; y += 7) for (var x = 3; x < CW; x += 9) {
+    var jx = x + Math.floor(hash(x, y) * 6) - 3, jy = y + Math.floor(hash(y, x) * 5) - 2;
+    var c = cellAt(jx, jy); if (c < 0 || !rg[c]) continue;
+    if (dist2land(jx, jy) < 3 || busy[jy * CW + jx]) continue;
+    var m = hq[c] * META.HSCALE, kind;
+    if (m > 1500) kind = 'mountain'; else if (m > 700) kind = hash(x, y + 1) < 0.6 ? 'hill' : 'tree'; else if (hash(x + 3, y) < 0.35) kind = 'tree'; else continue;
+    var im = IMG[kind];
+    // スプライト全体が陸の上に収まるか
+    var fits = landAt(jx - (im.width >> 1), jy) && landAt(jx + (im.width >> 1), jy) && landAt(jx, jy - im.height);
+    if (!fits) continue;
+    deco.push({ img: im, x: jx, y: jy });
+  }
+  function dist2land(x, y) { // 海岸からの内側距離（簡易）
+    for (var r = 1; r < 4; r++) if (!landAt(x - r, y) || !landAt(x + r, y) || !landAt(x, y - r) || !landAt(x, y + r)) return r;
+    return 9;
+  }
+  var all = deco.concat(items).sort(function (a, b) { return a.y - b.y; });
+
+  // 海のもの
+  function nearSea(p, need) {
+    need = need || 5;
+    var x = p[0], y = p[1];
+    if (dist[y * CW + x] >= need) return p;
+    for (var r = 1; r < 40; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      var a = x + dx, b = y + dy; if (a < 0 || b < 0 || a >= CW || b >= CH) continue;
+      if (dist[b * CW + a] >= need) return [a, b];
+    }
+    return p;
+  }
+  var sea = SEA_S.map(function (o) { var p = o.whirl ? toXY(o.lon, o.lat) : nearSea(toXY(o.lon, o.lat)); return { o: o, img: IMG[o.s], x: p[0], y: p[1] }; });
+  items.forEach(function (it) { if (it.o.sea) { var h2 = it.img.height >> 1, p = nearSea([it.x, it.y - h2], 2); it.x = p[0]; it.y = p[1] + h2; } });
+
+  // ---- 主人公 ----
+  function flip(c) {
+    var f = document.createElement('canvas'); f.width = c.width; f.height = c.height;
+    var x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f;
+  }
+  var BOY = {};
+  ['Stand', 'A', 'B'].forEach(function (ph) {
+    BOY['down' + ph] = makeSprite(BOY_HEAD_DOWN.concat(BOY_BODY_FRONT, BOY_LEGS['front' + ph]));
+    BOY['up' + ph] = makeSprite(BOY_HEAD_UP.concat(BOY_BODY_FRONT, BOY_LEGS['front' + ph]));
+    BOY['right' + ph] = makeSprite(BOY_HEAD_RIGHT.concat(BOY_BODY_SIDE, BOY_LEGS['side' + ph]));
+    BOY['left' + ph] = flip(BOY['right' + ph]);
+  });
+  // ---- フェリー乗り場と航路 ----
+  // ---- フェリー乗り場と航路 ----
+  function nearestPier(p) { // 乗り場にいちばん近い陸（上陸地点）
+    for (var r = 1; r < 40; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+      var x = p[0] + dx, y = p[1] + dy;
+      if (landAt(x, y) && landAt(x, y - 1) && landAt(x + 1, y) && landAt(x - 1, y)) return [x, y];
+    }
+    return p;
+  }
+  function seaRoute(from, isGoal) { // 海の上だけを通る道（幅優先探索）
+    var prev = new Int32Array(CW * CH).fill(-2), q = [], s = from[1] * CW + from[0], goal = -1;
+    prev[s] = -1; q.push(s);
+    for (var h = 0; h < q.length; h++) {
+      var c = q[h], cx = c % CW, cy = (c / CW) | 0;
+      if (isGoal(cx, cy)) { goal = c; break; }
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        var nx = cx + dx, ny = cy + dy; if (nx < 0 || ny < 0 || nx >= CW || ny >= CH) continue;
+        var n = ny * CW + nx; if (prev[n] !== -2 || dist[n] < 1) continue;
+        prev[n] = c; q.push(n);
+      }
+    }
+    var path = [];
+    if (goal >= 0) { for (var c = goal; c !== -1; c = prev[c]) path.push([c % CW, (c / CW) | 0]); path.reverse(); }
+    else path.push(from);
+    return path;
+  }
+  var ports = PORT_S.map(function (P) {
+    var sea0 = nearSea(toXY(P.lon, P.lat), 1), route;
+    if (P.edge) route = seaRoute(sea0, function (x) { return P.edge === 'left' ? x === 0 : x === CW - 1; });
+    var farPier = null;
+    if (!P.edge) { var to = nearSea(toXY(P.toLon, P.toLat), 1); route = seaRoute(sea0, function (x, y) { return Math.abs(x - to[0]) <= 1 && Math.abs(y - to[1]) <= 1; }); farPier = nearestPier(to); }
+    return { P: P, sea: sea0, pier: nearestPier(sea0), farPier: farPier, route: route, lock: false };
+  });
+  var ship = { s: 0, v: 1.4, port: null, phase: 'sail', wait: 0 };
+  // 島への船（佐渡）は、乗る→わたる→着く→金山へ を文字が読めるくらい ゆっくり見せる
+  function setShip(pt) {
+    ship.port = pt;
+    ship.v = pt.P.edge ? Math.max(1.0, pt.route.length / 75) : pt.route.length / 90;
+  }
+  var arrivePort = null;
+  ports.forEach(function (pt) { if (pt.P.id === arrive) arrivePort = pt; });
+  var start = arrivePort ? arrivePort.pier : toXY(136.22, 36.06); // ふくいから スタート
+  var boy = { x: start[0], y: start[1], fx: start[0], fy: start[1], dir: 'down', step: 0, moving: false, mode: arrivePort ? 'sailIn' : 'walk' };
+  if (arrivePort) {
+    setShip(arrivePort); ship.s = arrivePort.route.length - 1; arrivePort.lock = true;
+    if (!arrivePort.P.edge) { // 金山から出てきたところ：両津港で船に乗るところから
+      ship.phase = 'depart'; ship.wait = 0; ship.v = arrivePort.route.length / 40; // 帰りは さっさと
+      boy.fx = boy.x = arrivePort.farPier[0]; boy.fy = boy.y = arrivePort.farPier[1];
+      setTimeout(function () { toast('さどきせんで にいがたへ もどろう', 1800); }, 0);
+    }
+  }
+  document.getElementById('spot').classList.remove('show');
+  var held = [];
+  var KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  var target = null;
+  window.addEventListener('keydown', function (ev) {
+    if (boy.mode !== 'walk') { if (KEYS[ev.key]) ev.preventDefault(); return; }
+    var d = KEYS[ev.key]; if (!d) return;
+    ev.preventDefault(); target = null;
+    if (held.indexOf(d) < 0) held.push(d);
+  }, SIG);
+  window.addEventListener('keyup', function (ev) {
+    var d = KEYS[ev.key]; if (!d) return;
+    held = held.filter(function (h) { return h !== d; });
+  }, SIG);
+  window.addEventListener('blur', function () { held = []; }, SIG);
+  function walkable(x, y) {
+    x = Math.round(x); y = Math.round(y);
+    if (x < 2 || y < 14 || x >= CW - 2 || y >= CH - 1) return false;
+    return dist[y * CW + x] <= 3; // 陸と、ごく浅い海（海峡は歩いて渡れる）
+  }
+  function updateBoy() {
+    if (boy.mode !== 'walk') {
+      var pt = ship.port, island = !pt.P.edge;
+      ship.wait++;
+      if (boy.mode === 'sailOut') {
+        if (ship.phase === 'board') { if (ship.wait > 45) { ship.phase = 'sail'; ship.wait = 0; } return; }
+        if (ship.phase === 'sail') {
+          ship.s += ship.v;
+          if (ship.s >= pt.route.length - 1) {
+            if (!island) { build(pt.P.go, pt.P.arriveAt); return; }
+            ship.s = pt.route.length - 1; ship.phase = 'land'; ship.wait = 0;
+            boy.fx = boy.x = pt.farPier[0]; boy.fy = boy.y = pt.farPier[1]; boy.dir = 'down';
+            toast('さどがしま・りょうつこうに とうちゃく！', 2000);
+          }
+          return;
+        }
+        if (ship.phase === 'land') { if (ship.wait > 55) { ship.phase = 'toMine'; ship.wait = 0; toast('さど きんざんへ むかう…', 2000); } return; }
+        if (ship.phase === 'toMine') { if (ship.wait > 45) buildCave(); return; }
+      } else {
+        if (ship.phase === 'depart') { if (ship.wait > 25) { ship.phase = 'sail'; ship.wait = 0; } return; }
+        ship.s -= ship.v;
+        if (ship.s <= 0) {
+          boy.mode = 'walk'; boy.fx = boy.x = pt.pier[0]; boy.fy = boy.y = pt.pier[1]; boy.dir = 'down';
+          toast(pt.P.name + ' に とうちゃく！', 1800);
+        }
+      }
+      return;
+    }
+    var dx = 0, dy = 0;
+    held.forEach(function (d) { if (d === 'left') dx -= 1; if (d === 'right') dx += 1; if (d === 'up') dy -= 1; if (d === 'down') dy += 1; });
+    var auto = false;
+    if (!dx && !dy && target) { // タップした場所へ
+      var tx = target.x - boy.fx, ty = target.y - boy.fy;
+      if (Math.abs(tx) < 1 && Math.abs(ty) < 1) { target = null; }
+      else {
+        dx = Math.abs(tx) >= 1 ? Math.sign(tx) : 0; dy = Math.abs(ty) >= 1 ? Math.sign(ty) : 0;
+        if (dx && dy) { var big = Math.max(Math.abs(tx), Math.abs(ty)); if (Math.abs(tx) < big * 0.35) dx = 0; else if (Math.abs(ty) < big * 0.35) dy = 0; }
+        auto = true;
+      }
+    }
+    boy.moving = !!(dx || dy);
+    if (!boy.moving) { boy.step = 0; return; }
+    if (auto) boy.dir = Math.abs(target.x - boy.fx) > Math.abs(target.y - boy.fy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    else boy.dir = held[held.length - 1]; // 最後に押した方向を向く
+    var ox = boy.fx, oy = boy.fy;
+    var sp = 0.9; if (dx && dy) sp *= 0.72;
+    var nx = boy.fx + dx * sp, ny = boy.fy + dy * sp;
+    if (walkable(nx, ny)) { boy.fx = nx; boy.fy = ny; }
+    else if (dx && walkable(nx, boy.fy)) boy.fx = nx;
+    else if (dy && walkable(boy.fx, ny)) boy.fy = ny;
+    if (auto && ox === boy.fx && oy === boy.fy) { target = null; boy.moving = false; } // 行けない場所
+    boy.x = Math.round(boy.fx); boy.y = Math.round(boy.fy);
+    boy.step++;
+    var r = landAt(boy.x, boy.y);
+    if (r) hudRegion.textContent = REGIONS[r].name;
+    checkSpots();
+  }
+  // ---- ゲーセン・ふね ----
+  var near = {};
+  function checkSpots() {
+    // いちばん近いゲーセンが範囲内なら、左上に枠を出す（歩いて離れると消える）
+    var best = null, bd = 1e9;
+    arcades.forEach(function (it) { var d = Math.hypot(it.x - boy.x, it.y - boy.y); if (d < bd) { bd = d; best = it; } });
+    showSpot(best && bd <= SPOT_R ? best.n : -1);
+    // フェリー乗り場
+    ports.forEach(function (pt) {
+      if (boy.mode !== 'walk') return;
+      var dp = Math.hypot(pt.sea[0] - boy.x, pt.sea[1] - boy.y);
+      if (pt.lock) { if (dp > 10) pt.lock = false; }
+      else if (dp < 6) {
+        boy.mode = 'sailOut'; setShip(pt); ship.s = 0; target = null; held = []; showSpot(-1);
+        ship.phase = pt.P.edge ? 'sail' : 'board'; ship.wait = 0;
+        toast(pt.P.msg, pt.P.edge ? 1800 : 2000);
+      }
+    });
+  }
+  var found = [];
+  try { found = JSON.parse(localStorage.getItem('pcn_games_found2') || '[]'); } catch (e) {}
+  function saveFound() { try { localStorage.setItem('pcn_games_found2', JSON.stringify(found)); } catch (e) {} }
+  var SPOT_R = 3.6, spotEl = document.getElementById('spot'), spotNow = -1;
+  function showSpot(n) {
+    if (n === spotNow) return;
+    spotNow = n;
+    if (n < 0) { spotEl.classList.remove('show'); return; }
+    var a = ARCADES[n], isNew = !found[n];
+    found[n] = 1; saveFound(); renderDex();
+    document.getElementById('spot-new').textContent = isNew ? 'NEW! ゲーセン はっけん！' : 'このへんに ゲーセンが あったはず…';
+    document.getElementById('spot-name').textContent = a.name;
+    document.getElementById('spot-place').textContent = a.place;
+    document.getElementById('spot-desc').textContent = a.desc;
+    document.getElementById('spot-go').href = a.url;
+    renderMoneyState();
+    spotEl.classList.add('show');
+  }
+  function renderMoneyState() {
+    var broke = getMoney() <= 0;
+    spotEl.classList.toggle('broke', broke);
+    document.getElementById('spot-go').textContent = broke ? 'おかねが たりない…' : 'はいってみる ▶';
+  }
+  document.getElementById('spot-go').addEventListener('click', function (ev) {
+    if (getMoney() <= 0) { ev.preventDefault(); renderMoneyState(); return; }
+    setMoney(getMoney() - 1);
+    setTimeout(renderMoneyState, 300);
+  }, SIG);
+  var toastEl = document.getElementById('toast'), toastTimer;
+  function toast(s, ms) { toastEl.textContent = s; toastEl.style.display = 'block'; clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, ms || 1800); }
+  var hudRegion = document.getElementById('hud-region'), hudCount = document.getElementById('hud-count');
+  function renderDex() {
+    var cnt = 0; ARCADES.forEach(function (a, n) { if (found[n]) cnt++; });
+    hudCount.innerHTML = cnt + ' / ' + ARCADES.length + ' <span class="stars">' + Array(cnt + 1).join('★') + '</span>';
+    document.getElementById('dex').innerHTML = ARCADES.map(function (a, n) {
+      var no = 'No.' + (n + 1);
+      if (!found[n]) return '<div class="card locked"><div class="no">' + no + '</div><span class="reg">' + REGIONS[a.r].name + '</span><h4>？？？？？</h4><p class="hint">' + a.hint + '</p></div>';
+      return '<div class="card found"><div class="no">' + no + '</div><span class="reg">' + a.place + '</span><h4>' + a.name + '</h4><p class="desc">' + a.desc + '</p></div>';
+    }).join('');
+  }
+  document.getElementById('reset').addEventListener('click', function () { found = []; saveFound(); renderDex(); }, SIG);
+  renderDex();
+  window.__pcn = { scene: scene, arcades: arcades, ports: ports.map(function (p) { return { id: p.P.id, sea: p.sea, pier: p.pier, len: p.route.length }; }), port: ports[0].sea, pier: ports[0].pier, boy: boy, CW: CW, CH: CH };
+  hudRegion.textContent = REGIONS[landAt(boy.x, boy.y)] ? REGIONS[landAt(boy.x, boy.y)].name : '-';
+  function drawBoy(t) {
+    var onLand = ship.phase === 'land' || ship.phase === 'toMine' || ship.phase === 'depart';
+    if (boy.mode !== 'walk' && !onLand) return;
+    var ph = boy.moving ? (((boy.step >> 3) % 2) ? 'A' : 'B') : 'Stand';
+    var img = BOY[boy.dir + ph];
+    var x = boy.x - (img.width >> 1), y = boy.y - img.height + 1;
+    if (boy.moving && ph === 'A') y -= 1; // ぴょこぴょこ
+    var inSea = !landAt(boy.x, boy.y);
+    if (inSea) {
+      // 海では腰まで浸かる
+      ctx.drawImage(img, 0, 0, img.width, img.height - 5, x, y + 4, img.width, img.height - 5);
+      ctx.fillStyle = '#ffffff';
+      var w = (t >> 2) % 2;
+      ctx.fillRect(boy.x - 6 + w, boy.y, 3, 1); ctx.fillRect(boy.x + 3 - w, boy.y, 3, 1);
+      return;
+    }
+    ctx.fillStyle = 'rgba(59,51,85,0.35)';
+    ctx.fillRect(boy.x - 3, boy.y, 7, 1); ctx.fillRect(boy.x - 2, boy.y + 1, 5, 1);
+    ctx.drawImage(img, x, y);
+  }
+
+  var clouds = [];
+  for (var n = 0; n < 5; n++) clouds.push({ x: hash(n, 1) * CW, y: 6 + hash(n, 2) * (CH - 30), sp: 0.04 + hash(n, 3) * 0.06, big: n % 2 === 0 });
+
+  // ================= 描画 =================
+  var hover = 0, frame = 0, label = document.getElementById('label');
+  function draw() {
+    ++frame; var t = frame >> 1;
+    updateBoy();
+    ctx.drawImage(bg, 0, 0);
+    // 波
+    ctx.fillStyle = '#d4f6ff';
+    for (var n = 0; n < 140; n++) {
+      var x = Math.floor((hash(n, 11) * CW + t * 0.12) % CW), y = Math.floor(hash(n, 13) * CH);
+      if (dist[y * CW + x] < 4 || (t + n * 9) % 48 > 30) continue;
+      ctx.fillRect(x, y, 1, 1); ctx.fillRect(x + 1, y - 1, 2, 1); ctx.fillRect(x + 3, y, 1, 1);
+    }
+    // 海のもの
+    sea.forEach(function (s) { drawSea(s, t); });
+    // フェリー乗り場の目印と、航海中のフェリー
+    ports.forEach(function (pt) { if (boy.mode === 'walk' || ship.port !== pt) ctx.drawImage(IMG.dock, pt.sea[0] - 5, pt.sea[1] - 5 + ((t >> 3) % 2)); });
+    if (boy.mode !== 'walk') {
+      var R = ship.port.route, si = Math.max(0, Math.min(R.length - 1, Math.round(ship.s)));
+      var rp = R[si], ahead = R[Math.max(0, Math.min(R.length - 1, si + (boy.mode === 'sailOut' ? 4 : -4)))];
+      var goingLeft = ahead[0] < rp[0] || (ahead[0] === rp[0] && (boy.mode === 'sailOut' ? ship.port.P.edge === 'left' : ship.port.P.edge === 'right'));
+      var fi = goingLeft ? IMG.ferry : IMG.ferryR;
+      var onLand = ship.phase === 'land' || ship.phase === 'toMine' || ship.phase === 'depart';
+      if (!onLand) ctx.drawImage(IMG.boyHead, rp[0] - 1, rp[1] - 12 + ((t >> 3) % 2));
+      ctx.drawImage(fi, rp[0] - 7, rp[1] - 5 + ((t >> 3) % 2));
+    }
+    if (target && !boy.arrived) { var tb = (t >> 2) % 2; if (tb) ctx.drawImage(IMG.target, target.x - 2, target.y - 2); }
+    if (hover) ctx.drawImage(hl[hover], 0, 0);
+    // 陸のもの
+    var boyDrawn = false;
+    all.forEach(function (it) {
+      if (!boyDrawn && it.y > boy.y) { drawBoy(frame); boyDrawn = true; }
+      var bob = it.o && (t >> 4) % 2 && (it.o.s === 'cow' || it.o.s === 'deer' || it.o.s === 'camel' || it.o.s === 'shisa') ? -1 : 0;
+      ctx.drawImage(it.img, it.x - (it.img.width >> 1), it.y - it.img.height + 1 + bob);
+      if (it.o && it.o.steam) drawSteam(it.x, it.y - it.img.height, t);
+      if (it.o && it.o.smoke) drawSmoke(it.x, it.y - it.img.height, t);
+    });
+    if (!boyDrawn) drawBoy(frame);
+    // 地図の切り替え（暗転）
+    if (boy.mode !== 'walk') {
+      var fade;
+      if (ship.port.P.edge) { var edgeLeft = boy.mode === 'sailOut' ? ship.port.route.length - 1 - ship.s : ship.s; fade = Math.max(0, 1 - edgeLeft / 24); }
+      else if (ship.phase === 'toMine') fade = Math.min(1, ship.wait / 40);
+      else if (ship.phase === 'depart') fade = Math.max(0, 1 - ship.wait / 15);
+      else fade = 0;
+      if (fade > 0) { ctx.fillStyle = 'rgba(30,24,56,' + fade.toFixed(2) + ')'; ctx.fillRect(0, 0, CW, CH); }
+    }
+    // 雲
+    clouds.forEach(function (c) {
+      var x = ((c.x + t * c.sp) % (CW + 30)) - 20;
+      ctx.drawImage(c.big ? IMG.cloud : IMG.smallCloud, Math.round(x), Math.round(c.y));
+    });
+  }
+  function drawSea(s, t) {
+    var o = s.o;
+    if (o.whirl) {
+      for (var a = 0; a < 14; a++) {
+        var ang = a * 0.8 - t * 0.2, rad = 0.6 + a * 0.3;
+        ctx.fillStyle = a % 3 ? '#ffffff' : '#7ea6ee';
+        ctx.fillRect(Math.round(s.x + Math.cos(ang) * rad), Math.round(s.y + Math.sin(ang) * rad), 1, 1);
+      }
+      return;
+    }
+    if (o.fish) { // ときどきジャンプ
+      var ph = (t + Math.floor(hash(s.x, s.y) * 60)) % 70;
+      if (ph < 14) {
+        var jy = Math.round(Math.sin(ph / 14 * Math.PI) * 6);
+        ctx.drawImage(IMG.fish, s.x + ph - 7, s.y - jy - 4);
+      } else if (ph < 18) { ctx.fillStyle = '#ffffff'; ctx.fillRect(s.x + 7, s.y, 1, 1); ctx.fillRect(s.x + 5, s.y, 1, 1); }
+      return;
+    }
+    var dx = o.drift ? Math.round(Math.sin(t / 80) * 8 * o.drift) : 0, bob = (t >> 3) % 2;
+    ctx.drawImage(s.img, s.x + dx - (s.img.width >> 1), s.y - s.img.height + 1 + bob);
+    if (o.spout && (t % 90) < 40) {
+      ctx.fillStyle = '#ffffff';
+      var sx = s.x + dx - (s.img.width >> 1) + 4, sy = s.y - s.img.height + bob;
+      var hgt = Math.min(4, ((t % 90) >> 3) + 1);
+      for (var k = 1; k <= hgt; k++) ctx.fillRect(sx, sy - k, 1, 1);
+      ctx.fillRect(sx - 1, sy - hgt - 1, 1, 1); ctx.fillRect(sx + 1, sy - hgt - 1, 1, 1);
+    }
+  }
+  function drawSteam(x, y, t) {
+    ctx.fillStyle = '#ffffff';
+    for (var n = 0; n < 3; n++) { var ph = (t / 3 + n * 4) % 10; ctx.fillRect(Math.round(x - 3 + n * 3 + Math.sin((t + n * 10) / 6)), Math.round(y - ph), 1, 2); }
+  }
+  function drawSmoke(x, y, t) {
+    for (var n = 0; n < 5; n++) {
+      var ph = ((t * 0.25) + n * 5) % 20, r = ph < 10 ? 0 : 1;
+      ctx.fillStyle = ph < 8 ? '#a3a8bd' : '#e3e6f0';
+      ctx.fillRect(Math.round(x + ph * 0.4 + Math.sin((t + n * 13) / 10)) - r, Math.round(y - ph) - r, r * 2 + 1, r * 2 + 1);
+    }
+  }
+
+  // ---- 操作 ----
+  function regionAt(ev) {
+    var r = cv.getBoundingClientRect();
+    return landAt(Math.floor((ev.clientX - r.left) / r.width * CW), Math.floor((ev.clientY - r.top) / r.height * CH));
+  }
+  function setHover(r) {
+    hover = r;
+    if (r) { label.textContent = REGIONS[r].name; label.style.display = 'block'; } else label.style.display = 'none';
+  }
+  cv.addEventListener('pointermove', function (ev) { if (ev.pointerType === 'mouse') setHover(regionAt(ev)); }, SIG);
+  cv.addEventListener('mouseleave', function () { setHover(0); }, SIG);
+  cv.addEventListener('click', function (ev) {
+    var r = cv.getBoundingClientRect();
+    var x = Math.floor((ev.clientX - r.left) / r.width * CW), y = Math.floor((ev.clientY - r.top) / r.height * CH);
+    if (boy.mode !== 'walk') return;
+    target = { x: x, y: y }; held = [];
+    if (ev.pointerType !== 'mouse' && !matchMedia('(hover: hover)').matches) setHover(0);
+  }, SIG);
+
+  draw();
+  current.timer = setInterval(draw, 1000 / 30);
+}
+
+// =====================================================================
+//  佐渡金山の洞窟ステージ（入るたびに形が変わる。金を拾うと おかねが ふえる）
+// =====================================================================
+function buildCave() {
+  if (current) { current.ac.abort(); clearInterval(current.timer); }
+  var ac = new AbortController(), SIG = { signal: ac.signal };
+  current = { ac: ac, timer: 0 };
+  var CW = MAIN_SIZE[0], CH = MAIN_SIZE[1], T = 8, COLS = Math.floor(CW / T), ROWS = Math.floor(CH / T);
+  var cv = document.getElementById('map'), ctx = cv.getContext('2d');
+  cv.width = CW; cv.height = CH; ctx.imageSmoothingEnabled = false;
+  document.getElementById('spot').classList.remove('show');
+  document.getElementById('label').style.display = 'none';
+  var hudRegion = document.getElementById('hud-region'); hudRegion.textContent = 'さど きんざん';
+  var toastEl = document.getElementById('toast'), toastTimer;
+  function toast(s, ms) { toastEl.textContent = s; toastEl.style.display = 'block'; clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.style.display = 'none'; }, ms || 1800); }
+
+  // ---- 洞窟をつくる（セル・オートマトン） ----
+  var wall, ent = [COLS >> 1, ROWS - 3];
+  function makeCave() {
+    var w = new Uint8Array(COLS * ROWS);
+    for (var j = 0; j < ROWS; j++) for (var i = 0; i < COLS; i++)
+      w[j * COLS + i] = (i < 1 || j < 1 || i >= COLS - 1 || j >= ROWS - 1 || Math.random() < 0.44) ? 1 : 0;
+    for (var it = 0; it < 5; it++) {
+      var n = w.slice();
+      for (var j = 1; j < ROWS - 1; j++) for (var i = 1; i < COLS - 1; i++) {
+        var c = 0; for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) c += w[(j + dj) * COLS + i + di];
+        n[j * COLS + i] = c >= 5 ? 1 : 0;
+      }
+      w = n;
+    }
+    for (var dj = -1; dj <= 1; dj++) for (var di = -2; di <= 2; di++) w[(ent[1] + dj) * COLS + ent[0] + di] = 0; // 入口
+    // 入口から行ける所だけ残す
+    var seen = new Uint8Array(COLS * ROWS), q = [ent[1] * COLS + ent[0]]; seen[q[0]] = 1;
+    for (var h = 0; h < q.length; h++) {
+      var c = q[h], ci = c % COLS, cj = (c / COLS) | 0;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(function (d) { var n = (cj + d[1]) * COLS + ci + d[0]; if (!w[n] && !seen[n]) { seen[n] = 1; q.push(n); } });
+    }
+    for (var k = 0; k < w.length; k++) if (!seen[k]) w[k] = 1;
+    return { w: w, floor: q };
+  }
+  var cave; do { cave = makeCave(); } while (cave.floor.length < COLS * ROWS * 0.33);
+  wall = cave.w;
+  var isWall = function (i, j) { return i < 0 || j < 0 || i >= COLS || j >= ROWS || wall[j * COLS + i]; };
+
+  // ---- 金をおく（入口から遠い床に） ----
+  var GOLD_N = 10, golds = [], cand = cave.floor.filter(function (c) {
+    var i = c % COLS, j = (c / COLS) | 0; return Math.hypot(i - ent[0], j - ent[1]) > 7;
+  });
+  function takeSpot() { var c = cand.splice(Math.floor(Math.random() * cand.length), 1)[0]; return [(c % COLS) * T + 4, ((c / COLS) | 0) * T + 6]; }
+  for (var n = 0; n < GOLD_N && cand.length; n++) { var p = takeSpot(); golds.push({ x: p[0], y: p[1], got: false, v: 1 }); }
+  // いちばん奥に 大きな金（3つぶん）
+  var far = cave.floor.reduce(function (a, c) { var d = Math.hypot(c % COLS - ent[0], ((c / COLS) | 0) - ent[1]); return d > a[0] ? [d, c] : a; }, [0, 0])[1];
+  golds.push({ x: (far % COLS) * T + 4, y: ((far / COLS) | 0) * T + 6, got: false, v: 3, big: true });
+  // ランタンの油
+  var oils = []; for (var n = 0; n < 3 && cand.length; n++) { var p = takeSpot(); oils.push({ x: p[0], y: p[1], got: false }); }
+  // コウモリ（ぶつかると ひろった金を ぜんぶ とられる）
+  var bats = []; for (var n = 0; n < 4 && cand.length; n++) { var p = takeSpot(); bats.push({ x: p[0], y: p[1] - 4, vx: 0, vy: 0, t: 0 }); }
+
+  // ---- 背景を描く ----
+  var bg = document.createElement('canvas'); bg.width = CW; bg.height = CH;
+  var b = bg.getContext('2d');
+  b.fillStyle = '#1a1424'; b.fillRect(0, 0, CW, CH);
+  for (var j = 0; j < ROWS; j++) for (var i = 0; i < COLS; i++) {
+    var x = i * T, y = j * T;
+    if (!isWall(i, j)) {
+      b.fillStyle = '#4a3a2e'; b.fillRect(x, y, T, T);
+      if ((i * 7 + j * 3) % 5 === 0) { b.fillStyle = '#5c4a3a'; b.fillRect(x + 2, y + 5, 2, 1); b.fillRect(x + 5, y + 2, 1, 1); }
+    } else {
+      b.fillStyle = '#6b5a4a'; b.fillRect(x, y, T, T);
+      b.fillStyle = '#7d6a58'; if ((i + j) % 2) b.fillRect(x + 1, y + 1, 3, 2); else b.fillRect(x + 4, y + 3, 3, 2);
+      if (!isWall(i, j + 1)) { b.fillStyle = '#3b2e24'; b.fillRect(x, y + T - 3, T, 3); b.fillStyle = '#2a2018'; b.fillRect(x, y + T - 1, T, 1); }
+      if (!isWall(i, j - 1)) { b.fillStyle = '#9a8670'; b.fillRect(x, y, T, 1); }
+      if (!isWall(i - 1, j)) { b.fillStyle = '#2a2018'; b.fillRect(x, y, 1, T); }
+      if (!isWall(i + 1, j)) { b.fillStyle = '#2a2018'; b.fillRect(x + T - 1, y, 1, T); }
+      // ところどころ金のすじ
+      if ((i * 13 + j * 7) % 23 === 0) { b.fillStyle = '#c9971c'; b.fillRect(x + 3, y + 3, 2, 1); }
+    }
+  }
+  var IMG = {}; ['gold', 'bigGold', 'oil', 'batA', 'batB', 'ladder', 'target'].forEach(function (k) { IMG[k] = makeSprite(SP[k]); });
+  var ex = ent[0] * T + 4, ey = ent[1] * T + 7;
+  b.drawImage(IMG.ladder, ex - 3, ey - 6);
+
+  // ---- 少年 ----
+  function flip(c) { var f = document.createElement('canvas'); f.width = c.width; f.height = c.height; var x = f.getContext('2d'); x.translate(c.width, 0); x.scale(-1, 1); x.drawImage(c, 0, 0); return f; }
+  var BOY = {};
+  ['Stand', 'A', 'B'].forEach(function (ph) {
+    BOY['down' + ph] = makeSprite(BOY_HEAD_DOWN.concat(BOY_BODY_FRONT, BOY_LEGS['front' + ph]));
+    BOY['up' + ph] = makeSprite(BOY_HEAD_UP.concat(BOY_BODY_FRONT, BOY_LEGS['front' + ph]));
+    BOY['right' + ph] = makeSprite(BOY_HEAD_RIGHT.concat(BOY_BODY_SIDE, BOY_LEGS['side' + ph]));
+    BOY['left' + ph] = flip(BOY['right' + ph]);
+  });
+  var boy = { fx: ex, fy: ey - 10, x: ex, y: ey - 10, dir: 'up', step: 0, moving: false };
+  var held = [], target = null, exitLock = true, got = 0, leaving = 0, oil = 1, hurt = 0, total = golds.reduce(function (a, g) { return a + g.v; }, 0);
+  var KEYS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  window.addEventListener('keydown', function (ev) { var d = KEYS[ev.key]; if (!d) return; ev.preventDefault(); target = null; if (held.indexOf(d) < 0) held.push(d); }, SIG);
+  window.addEventListener('keyup', function (ev) { var d = KEYS[ev.key]; if (!d) return; held = held.filter(function (h) { return h !== d; }); }, SIG);
+  window.addEventListener('blur', function () { held = []; }, SIG);
+  cv.addEventListener('click', function (ev) {
+    var r = cv.getBoundingClientRect();
+    target = { x: Math.floor((ev.clientX - r.left) / r.width * CW), y: Math.floor((ev.clientY - r.top) / r.height * CH) }; held = [];
+  }, SIG);
+  function free(x, y) { // 足もとの左右が床なら歩ける
+    return !isWall(Math.floor((x - 2) / T), Math.floor(y / T)) && !isWall(Math.floor((x + 2) / T), Math.floor(y / T)) &&
+           !isWall(Math.floor((x - 2) / T), Math.floor((y - 2) / T)) && !isWall(Math.floor((x + 2) / T), Math.floor((y - 2) / T));
+  }
+  function update() {
+    if (leaving) { leaving++; if (leaving > 30) build('main', 'niigata'); return; }
+    // ランタンの油がへっていく（約35秒でからっぽ。きれても 外には出されず、まっくらになるだけ）
+    if (oil > 0) {
+      oil -= 1 / (35 * 30);
+      if (oil <= 0) { oil = 0; toast('ランタンが きれた！ まっくらだ…', 2400); }
+    }
+    if (hurt) hurt--;
+    // コウモリ：近くに来ると 追いかけてくる
+    bats.forEach(function (bt) {
+      bt.t++;
+      var dx = boy.x - bt.x, dy = boy.y - 6 - bt.y, d = Math.hypot(dx, dy);
+      if (d < 55) { bt.vx += dx / d * 0.04; bt.vy += dy / d * 0.04; }
+      else if (bt.t % 40 === 0) { bt.vx += (Math.random() - 0.5) * 0.8; bt.vy += (Math.random() - 0.5) * 0.8; }
+      var sp = Math.hypot(bt.vx, bt.vy), mx = d < 55 ? 0.75 : 0.5; if (sp > mx) { bt.vx *= mx / sp; bt.vy *= mx / sp; }
+      var nx = bt.x + bt.vx, ny = bt.y + bt.vy;
+      if (isWall(Math.floor(nx / T), Math.floor(bt.y / T))) bt.vx *= -1; else bt.x = nx;
+      if (isWall(Math.floor(bt.x / T), Math.floor(ny / T))) bt.vy *= -1; else bt.y = ny;
+      if (!hurt && d < 6) {
+        hurt = 60;
+        if (got > 0) { // ひろった金は ぜんぶ とられて、洞窟のどこかへ ちらばる
+          setMoney(getMoney() - got);
+          for (var k = 0; k < got; k++) {
+            var spot = cave.floor[Math.floor(Math.random() * cave.floor.length)];
+            golds.push({ x: (spot % COLS) * T + 4, y: ((spot / COLS) | 0) * T + 6, got: false, v: 1 });
+          }
+          toast('コウモリに きんを ぜんぶ とられた！', 2200);
+          got = 0;
+        } else toast('コウモリだ！ きをつけて', 1600);
+        bt.vx = -bt.vx * 3; bt.vy = -bt.vy * 3;
+      }
+    });
+    var dx = 0, dy = 0, auto = false;
+    held.forEach(function (d) { if (d === 'left') dx -= 1; if (d === 'right') dx += 1; if (d === 'up') dy -= 1; if (d === 'down') dy += 1; });
+    if (!dx && !dy && target) {
+      var tx = target.x - boy.fx, ty = target.y - boy.fy;
+      if (Math.abs(tx) < 1 && Math.abs(ty) < 1) target = null;
+      else { dx = Math.abs(tx) >= 1 ? Math.sign(tx) : 0; dy = Math.abs(ty) >= 1 ? Math.sign(ty) : 0; auto = true; }
+    }
+    boy.moving = !!(dx || dy);
+    if (!boy.moving) { boy.step = 0; return; }
+    if (auto) boy.dir = Math.abs(target.x - boy.fx) > Math.abs(target.y - boy.fy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    else boy.dir = held[held.length - 1];
+    var sp = 1.5; if (dx && dy) sp *= 0.72;
+    var ox = boy.fx, oy = boy.fy, nx = boy.fx + dx * sp, ny = boy.fy + dy * sp;
+    if (free(nx, ny)) { boy.fx = nx; boy.fy = ny; } else if (dx && free(nx, boy.fy)) boy.fx = nx; else if (dy && free(boy.fx, ny)) boy.fy = ny;
+    if (auto && ox === boy.fx && oy === boy.fy) { target = null; boy.moving = false; }
+    boy.x = Math.round(boy.fx); boy.y = Math.round(boy.fy); boy.step++;
+    // 金をひろう
+    golds.forEach(function (g) {
+      if (!g.got && Math.abs(g.x - boy.x) < 6 && Math.abs(g.y - boy.y) < 6) {
+        g.got = true; got += g.v; setMoney(getMoney() + g.v);
+        var left = golds.filter(function (x) { return !x.got; }).length;
+        toast(g.big ? 'おおきな きんかい！ ×3' : left === 0 ? 'きんを ぜんぶ あつめた！ はしごから でよう' : 'きん ゲット！ （のこり ' + left + '）', 1800);
+      }
+    });
+    oils.forEach(function (o) {
+      if (!o.got && Math.abs(o.x - boy.x) < 6 && Math.abs(o.y - boy.y) < 6) { o.got = true; oil = Math.min(1, oil + 0.5); toast('ランタンの あぶらを みつけた！', 1600); }
+    });
+    // はしごで外へ
+    var de = Math.hypot(boy.x - ex, boy.y - ey);
+    if (exitLock) { if (de > 14) exitLock = false; }
+    else if (de < 5) { leaving = 1; held = []; target = null; toast('きんざんを でた！', 1500); }
+  }
+
+  // ---- 明かり（少年のまわりだけ見える） ----
+  var dark = document.createElement('canvas'); dark.width = CW; dark.height = CH; var dctx = dark.getContext('2d');
+  var frame = 0;
+  function draw() {
+    frame++; var t = frame >> 1;
+    update();
+    ctx.drawImage(bg, 0, 0);
+    golds.forEach(function (g, n) { if (!g.got) { var gi = g.big ? IMG.bigGold : IMG.gold; ctx.drawImage(gi, g.x - (gi.width >> 1), g.y - gi.height + 1 + (((t >> 3) + n) % 2)); } });
+    oils.forEach(function (o) { if (!o.got) ctx.drawImage(IMG.oil, o.x - 2, o.y - 4); });
+    bats.forEach(function (bt, n) { var bi = ((t >> 2) + n) % 2 ? IMG.batA : IMG.batB; ctx.drawImage(bi, Math.round(bt.x) - 3, Math.round(bt.y) - 2); });
+    var ph = boy.moving ? (((boy.step >> 3) % 2) ? 'A' : 'B') : 'Stand', img = BOY[boy.dir + ph];
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fillRect(boy.x - 3, boy.y, 7, 1);
+    if (!hurt || (t >> 1) % 2) ctx.drawImage(img, boy.x - (img.width >> 1), boy.y - img.height + 1 - (boy.moving && ph === 'A' ? 1 : 0));
+    if (target) { if ((t >> 2) % 2) ctx.drawImage(IMG.target, target.x - 2, target.y - 2); }
+    // 暗やみ（ランタンの明かりが少しゆらぐ）
+    var r0 = oil > 0 ? 14 + Math.round(30 * oil) + ((t >> 3) % 2) : 5, cx = boy.x, cy = boy.y - 6;
+    dctx.globalCompositeOperation = 'source-over'; dctx.clearRect(0, 0, CW, CH);
+    dctx.fillStyle = oil > 0 ? 'rgba(10,6,20,0.8)' : 'rgba(4,2,8,0.97)'; dctx.fillRect(0, 0, CW, CH);
+    dctx.globalCompositeOperation = 'destination-out';
+    (oil > 0 ? [[r0 + 16, 0.35], [r0 + 8, 0.6], [r0, 1]] : [[r0, 0.5]]).forEach(function (c) { dctx.fillStyle = 'rgba(0,0,0,' + c[1] + ')'; dctx.beginPath(); dctx.arc(cx, cy, c[0], 0, Math.PI * 2); dctx.fill(); });
+    // はしごのまわりも少しあかるい
+    dctx.fillStyle = 'rgba(0,0,0,0.5)'; dctx.beginPath(); dctx.arc(ex, ey - 3, 14, 0, Math.PI * 2); dctx.fill();
+    ctx.drawImage(dark, 0, 0);
+    // 暗やみの中で、金がときどき キラッ と光る
+    golds.forEach(function (g, n) {
+      if (g.got) return;
+      var p = (t + n * 17) % 60;
+      if (p < 6) { ctx.fillStyle = '#ffe680'; ctx.fillRect(g.x, g.y - 6, 1, 3); ctx.fillRect(g.x - 1, g.y - 5, 3, 1); }
+    });
+    // コウモリの目は 暗やみでも光る
+    bats.forEach(function (bt) { ctx.fillStyle = '#ff5a5a'; ctx.fillRect(Math.round(bt.x) - 1, Math.round(bt.y) + 1, 1, 1); ctx.fillRect(Math.round(bt.x) + 1, Math.round(bt.y) + 1, 1, 1); });
+    // ランタンの油ゲージと、ひろった金
+    ctx.fillStyle = '#1b1b2f'; ctx.fillRect(4, 4, 42, 7);
+    ctx.fillStyle = oil < 0.25 && (t >> 3) % 2 ? '#ff5a5a' : '#ffa64d'; ctx.fillRect(5, 5, Math.round(40 * oil), 5);
+    for (var k = 0; k < got && k < 20; k++) ctx.drawImage(IMG.gold, CW - 10 - k * 7, 4);
+    if (leaving) { ctx.fillStyle = 'rgba(30,24,56,' + Math.min(1, leaving / 25).toFixed(2) + ')'; ctx.fillRect(0, 0, CW, CH); }
+  }
+  toast('さど きんざんに はいった！ きんを さがそう', 2600);
+  window.__pcn = { scene: 'cave', boy: boy, golds: golds, bats: bats, ex: ex, ey: ey, CW: CW, CH: CH, oil: function () { return oil; } };
+  draw();
+  current.timer = setInterval(draw, 1000 / 30);
+}
+</script>
+<script>
+// =====================================================================
+//  BGM：Web Audio で鳴らすオリジナル曲（ピコピコ音源）
+//  ・矩形波のメロディ＋三角波のベース＋和音の伴奏
+//  ・ブラウザの決まりで、最初のクリック／キー入力のあとに鳴り始める
+// =====================================================================
+var BGM = (function () {
+  // オリジナルの、てくてく草原を歩くような 少しさみしげで単調なワルツ（イ短調・3拍子）
+  // 同じ4小節のフレーズを くり返しながら、少しずつ変える
+  var BPM = 120, BEAT = 60 / BPM, BAR = 3;
+  var MELODY = [
+    ['E5', 1], ['D5', 1], ['C5', 1],  ['D5', 2], ['E5', 1],  ['C5', 1], ['B4', 1], ['A4', 1],  ['B4', 3],
+    ['E5', 1], ['D5', 1], ['C5', 1],  ['D5', 2], ['E5', 1],  ['C5', 1], ['D5', 1], ['B4', 1],  ['C5', 3],
+    ['A4', 1], ['C5', 1], ['A4', 1],  ['G4', 2], ['B4', 1],  ['A4', 1], ['C5', 1], ['D5', 1],  ['E5', 3],
+    ['E5', 1], ['D5', 1], ['C5', 1],  ['D5', 2], ['C5', 1],  ['B4', 1], ['G4', 1], ['B4', 1],  ['A4', 3]
+  ];
+  // 小節ごとの和音 [ベース, 和音1, 和音2]
+  var Am = ['A2', 'C4', 'E4'], G = ['G2', 'B3', 'D4'], F = ['F2', 'A3', 'C4'], C = ['C3', 'E4', 'G4'];
+  var CHORDS = [Am, G, F, G,  Am, G, F, C,  F, G, Am, C,  Am, G, G, Am];
+  var BARS = 16, LOOP = BARS * BAR * BEAT;
+
+  function freq(n) {
+    var m = /^([A-G])(#?)(\d)$/.exec(n), s = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]] + (m[2] ? 1 : 0);
+    return 440 * Math.pow(2, (s + (+m[3] + 1) * 12 - 69) / 12);
+  }
+
+  var ac = null, master = null, noiseBuf = null, timer = null, loopStart = 0, nextLoop = 0, on = true;
+  try { on = localStorage.getItem('pcn_games_bgm') !== 'off'; } catch (e) {}
+
+  function tone(type, f, t, dur, vol, duty) {
+    var o = ac.createOscillator(), g = ac.createGain();
+    if (type === 'pulse') { // デューティ比つき矩形波
+      var real = new Float32Array(32), imag = new Float32Array(32);
+      for (var k = 1; k < 32; k++) imag[k] = (2 / (k * Math.PI)) * Math.sin(k * Math.PI * duty);
+      o.setPeriodicWave(ac.createPeriodicWave(real, imag));
+    } else o.type = type;
+    o.frequency.value = f;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.008);
+    g.gain.linearRampToValueAtTime(vol * 0.6, t + Math.min(dur * 0.5, 0.25));
+    g.gain.linearRampToValueAtTime(0, t + dur);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(t, dur, vol, hp) {
+    var s = ac.createBufferSource(), g = ac.createGain(), fl = ac.createBiquadFilter();
+    s.buffer = noiseBuf; fl.type = 'highpass'; fl.frequency.value = hp;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    s.connect(fl); fl.connect(g); g.connect(master); s.start(t); s.stop(t + dur);
+  }
+
+  function scheduleLoop(t0) {
+    // メロディ（少し長めに、やわらかく）
+    var t = t0;
+    MELODY.forEach(function (n) {
+      var d = n[1] * BEAT;
+      if (n[0] !== 'R') tone('pulse', freq(n[0]), t, d * 0.95, 0.13, 0.5);
+      t += d;
+    });
+    // 1拍目にベース、2・3拍目に和音（ブン・チャ・チャ）
+    CHORDS.forEach(function (ch, i) {
+      var h = t0 + i * BAR * BEAT;
+      tone('triangle', freq(ch[0]), h, BEAT * 2.6, 0.30);
+      [1, 2].forEach(function (k) {
+        tone('pulse', freq(ch[1]), h + k * BEAT, BEAT * 0.7, 0.04, 0.25);
+        tone('pulse', freq(ch[2]), h + k * BEAT, BEAT * 0.7, 0.04, 0.25);
+      });
+    });
+  }
+
+  function pump() { // 先読みして次のループを予約
+    while (nextLoop < ac.currentTime + 1.0) { scheduleLoop(nextLoop); nextLoop += LOOP; }
+  }
+
+  function start() {
+    if (!on) return;
+    try {
+      if (!ac) {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+        noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate);
+        var d = noiseBuf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ac.state === 'suspended') ac.resume();
+      if (timer) return;
+      master.gain.cancelScheduledValues(ac.currentTime);
+      master.gain.setValueAtTime(0.5, ac.currentTime);
+      nextLoop = ac.currentTime + 0.1;
+      pump(); timer = setInterval(pump, 200);
+    } catch (e) { console.error(e); }
+  }
+  function stop() {
+    if (!ac) return;
+    clearInterval(timer); timer = null;
+    // 予約済みの音は音量ゼロで止める
+    master.gain.cancelScheduledValues(ac.currentTime);
+    master.gain.setValueAtTime(0, ac.currentTime);
+    ac.suspend();
+    // 次回は作り直す（予約済みの音を確実に捨てる）
+    var old = ac; ac = null; setTimeout(function () { try { old.close(); } catch (e) {} }, 100);
+  }
+  function setOn(v) {
+    on = v; try { localStorage.setItem('pcn_games_bgm', v ? 'on' : 'off'); } catch (e) {}
+    if (v) start(); else stop();
+    render();
+  }
+  function render() {
+    var b = document.getElementById('bgm-btn'); if (!b) return;
+    b.textContent = on ? '♪ BGM オン' : '♪ BGM オフ';
+    b.classList.toggle('off', !on);
+  }
+  // 自動ログイン時など、まだ操作がないときは最初の操作で鳴らす
+  function armFirstGesture() {
+    var go = function () { start(); window.removeEventListener('pointerdown', go); window.removeEventListener('keydown', go); };
+    window.addEventListener('pointerdown', go); window.addEventListener('keydown', go);
+  }
+  document.addEventListener('DOMContentLoaded', render);
+  setTimeout(function () {
+    render();
+    var b = document.getElementById('bgm-btn');
+    if (b) b.addEventListener('click', function (ev) { ev.stopPropagation(); setOn(!on); });
+  }, 0);
+  return { start: start, stop: stop, armFirstGesture: armFirstGesture };
+})();
+</script>
+<script>
+// ---- 簡易パスワード（ハードコード。中身は誰でもソースから読める前提） ----
+// 地図のスクリプトとは別ブロックにして、地図側でエラーが出てもログインは動くようにしている
+(function () {
+  var ID = 'pcn', PW = 'shadan', KEY = 'pcn_games_ok';
+  function unlock(byUser) {
+    document.body.classList.add('authed');
+    // ログイン欄からフォーカスを外し、ページ（地図）にキー入力が届くようにする
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    function grab() { try { window.focus(); document.getElementById('map').focus({ preventScroll: true }); } catch (e) {} }
+    grab(); setTimeout(grab, 100); window.addEventListener('load', grab);
+    if (byUser) BGM.start(); else BGM.armFirstGesture();
+    try { startMap(); } catch (e) { console.error(e); }
+  }
+  // 全角・大文字・空白・区切り記号のゆれを吸収して判定する
+  function norm(s) { return (s.normalize ? s.normalize('NFKC') : s).toLowerCase().replace(/[\s\/／・,、:：]/g, ''); }
+  function tryLogin() {
+    var id = norm(document.getElementById('uid').value), pw = norm(document.getElementById('upw').value);
+    if ((id === ID && pw === PW) || (id === '' && pw === PW) || id + pw === ID + PW) {
+      try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+      unlock(true);
+    } else {
+      document.querySelector('#login .err').textContent = 'IDかパスワードがちがいます';
+    }
+  }
+  try { if (sessionStorage.getItem(KEY) === '1') return unlock(false); } catch (e) {}
+  // フォーム送信に頼らず、ボタンとEnterキーを直接拾う（プレビュー環境などでも動くように）
+  document.getElementById('login-btn').addEventListener('click', tryLogin);
+  document.getElementById('login').addEventListener('submit', function (ev) { ev.preventDefault(); tryLogin(); });
+  ['uid', 'upw'].forEach(function (f) {
+    document.getElementById(f).addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' && !ev.isComposing && ev.keyCode !== 229) { ev.preventDefault(); tryLogin(); }
+    });
+  });
+  document.getElementById('uid').focus();
+})();
+</script>
+</body></html>
